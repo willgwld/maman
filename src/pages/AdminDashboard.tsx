@@ -56,7 +56,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/AuthProvider";
-import { fetchAdminUsers, fetchAdminStats, addAdminUser, toggleAdminUserStatus, deleteAdminUser } from "@/lib/apiClient";
+import { addAdminUser, toggleAdminUserStatus, deleteAdminUser } from "@/lib/apiClient";
 
 // --- INTERFACES ---
 interface UserProfile {
@@ -355,58 +355,56 @@ Règles strictes :
     localStorage.setItem(LOCAL_TICKETS_KEY, JSON.stringify(tickets));
   }, [tickets]);
 
-  // Load real users and live statistics from the backend REST API & Supabase
+  // Load real users and stats from Supabase database
   const loadRealUserData = async () => {
+    if (!isSupabaseConfigured) return;
+
     try {
-      // 1. Fetch real users from backend Express API
-      const apiUsers = await fetchAdminUsers();
-      if (apiUsers && apiUsers.length > 0) {
-        setUsers(apiUsers);
+      // 1. Fetch real users from Supabase profiles
+      const { data: profiles, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+
+      if (profiles && profiles.length > 0) {
+        const mapped: UserProfile[] = profiles.map((p) => ({
+          id: p.id,
+          name: p.name || "",
+          email: p.email || "",
+          stage: p.current_week > 40 ? "postpartum" : "enceinte",
+          current_week: p.current_week || null,
+          due_date: p.due_date || null,
+          maternity_hospital: "",
+          role: p.role || "user",
+          status: "active",
+          created_at: p.created_at ? new Date(p.created_at).toLocaleDateString("fr-FR") : "",
+          last_active: p.updated_at ? new Date(p.updated_at).toLocaleString("fr-FR") : "",
+          daily_logs_count: 0,
+          ai_chats_count: 0,
+          checklists_completed: 0,
+          notifications_enabled: true,
+          donations_total: 0
+        }));
+        setUsers(mapped);
       }
 
-      // 2. If Supabase is configured, merge with Supabase profiles table
-      if (isSupabaseConfigured) {
-        const { data, error } = await supabase.from("profiles").select("*");
-        if (data && data.length > 0 && !error) {
-          const mapped: UserProfile[] = data.map((p) => ({
-            id: p.id,
-            name: p.name || "",
-            email: p.email || "",
-            stage: p.current_week > 40 ? "postpartum" : "enceinte",
-            current_week: p.current_week || null,
-            due_date: p.due_date || null,
-            maternity_hospital: p.maternity_hospital || "",
-            role: "user",
-            status: "active",
-            created_at: p.updated_at ? new Date(p.updated_at).toLocaleDateString("fr-FR") : "",
-            last_active: p.updated_at ? new Date(p.updated_at).toLocaleString("fr-FR") : "",
-            daily_logs_count: 0,
-            ai_chats_count: 0,
-            checklists_completed: 0,
-            notifications_enabled: true,
-            donations_total: 0
-          }));
+      // 2. Fetch real symptom logs count from Supabase
+      const { count: logsCount } = await supabase
+        .from("symptom_logs")
+        .select("*", { count: "exact", head: true });
 
-          // Merge without duplicates
-          setUsers((prev) => {
-            const existingIds = new Set(prev.map((u) => u.id));
-            const newFromSupabase = mapped.filter((m) => !existingIds.has(m.id));
-            return [...prev, ...newFromSupabase];
-          });
-        }
-      }
-      showToast("Données réelles des utilisatrices synchronisées !");
+      // 3. Fetch real community posts count from Supabase
+      const { count: postsCount } = await supabase
+        .from("community_posts")
+        .select("*", { count: "exact", head: true });
+
+      showToast("Données synchronisées depuis Supabase !");
     } catch (err) {
-      console.warn("Error loading real user data", err);
-      showToast("Données synchronisées depuis le serveur.");
+      console.warn("Error loading Supabase data", err);
     }
   };
 
   useEffect(() => {
     loadRealUserData();
   }, [isSupabaseConfigured]);
-
-  const fetchSupabaseUsers = () => {
     loadRealUserData();
   };
 
@@ -498,12 +496,14 @@ Règles strictes :
   const totalUsersCount = users.length;
   const today = new Date().toLocaleDateString("fr-FR");
   const newUsersToday = users.filter((u) => u.created_at === today).length;
-  const newUsers7d = users.filter((u) => u.created_at.startsWith("2026-07")).length;
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toLocaleDateString("fr-FR");
+  const newUsers7d = users.filter((u) => u.created_at >= sevenDaysAgo).length;
   const pregnantUsersCount = users.filter((u) => u.stage === "enceinte").length;
   const postpartumUsersCount = users.filter((u) => u.stage === "postpartum").length;
   const totalDonationsAmount = donations.reduce((acc, d) => acc + d.amount, 0);
+  const currentMonth = new Date().toISOString().slice(0, 7);
   const monthlyDonationsAmount = donations
-    .filter((d) => d.date.startsWith("2026-07"))
+    .filter((d) => d.date.startsWith(currentMonth))
     .reduce((acc, d) => acc + d.amount, 0);
   const totalDailyLogs = users.reduce((acc, u) => acc + u.daily_logs_count, 0);
   const totalAiChats = users.reduce((acc, u) => acc + u.ai_chats_count, 0);
