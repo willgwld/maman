@@ -1,0 +1,6 @@
+{
+  "name": "MamanZen",
+  "description": "Une PWA d'accompagnement personnalisé pour femmes enceintes avec suivi des symptômes et recommandations IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

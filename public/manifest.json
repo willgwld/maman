@@ -1,0 +1,19 @@
+{
+  "name": "MamanZen - Grossesse & Maternité",
+  "short_name": "MamanZen",
+  "description": "Application PWA d'accompagnement personnalisé pour la grossesse, le suivi de santé et le bien-être maternel.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFAF9",
+  "theme_color": "#E9B6B6",
+  "categories": ["medical", "health", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: oklch(0.985 0.01 50); /* Beige doux #FAF8F5 */
+    --foreground: oklch(0.32 0.01 50); /* Dark grey #4A4A4A */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.32 0.01 50);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.32 0.01 50);
+    --primary: oklch(0.75 0.1 350); /* Rose poudré #E9B6B6 */
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.92 0.05 150); /* Vert doux #A3B899 */
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.94 0.02 350);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.75 0.1 350);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 1rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.32 0.01 50);
+    --sidebar-primary: oklch(0.32 0.01 50);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+    --background: oklch(0.18 0.01 50); /* #1A1816 Dark warm background */
+    --foreground: oklch(0.92 0.01 50); /* #E6E1DA Soft warm light text */
+    --card: oklch(0.23 0.01 50); /* #221F1D Dark warm card */
+    --card-foreground: oklch(0.92 0.01 50);
+    --popover: oklch(0.23 0.01 50);
+    --popover-foreground: oklch(0.92 0.01 50);
+    --primary: oklch(0.78 0.1 350);
+    --primary-foreground: oklch(0.15 0 0);
+    --secondary: oklch(0.72 0.08 150);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.28 0.01 50);
+    --muted-foreground: oklch(0.72 0.01 50);
+    --accent: oklch(0.28 0.01 50);
+    --accent-foreground: oklch(0.95 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.78 0.1 350);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.21 0.01 50);
+    --sidebar-foreground: oklch(0.92 0.01 50);
+    --sidebar-primary: oklch(0.78 0.1 350);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.28 0.01 50);
+    --sidebar-accent-foreground: oklch(0.95 0 0);
+    --sidebar-border: oklch(1 0 0 / 12%);
+    --sidebar-ring: oklch(0.78 0.1 350);
+    color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Global Dark Mode Overrides for Hardcoded Light Utilities across all components */
+.dark {
+  /* Soft dark page background fallbacks */
+  .bg-\[\#FAF8F5\],
+  .bg-\[\#FAFAF9\],
+  .bg-\[\#F8F6F2\] {
+    background-color: #181615 !important;
+  }
+
+  /* Cards, containers & modal white background overrides */
+  .bg-white {
+    background-color: #221F1D !important;
+    color: #E6E1DA;
+  }
+
+  /* Secondary neutral light background overrides */
+  .bg-\[\#F4F1ED\] {
+    background-color: #2A2623 !important;
+  }
+
+  /* Hardcoded dark text colors in light mode mapped to soft light warm text in dark mode */
+  .text-\[\#4A4A4A\],
+  .text-\[\#333333\],
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700 {
+    color: #E6E1DA !important;
+  }
+
+  /* Muted text in dark mode */
+  .text-gray-600,
+  .text-gray-500,
+  .text-slate-600,
+  .text-slate-500 {
+    color: #A39E98 !important;
+  }
+
+  /* Border color overrides */
+  .border-\[\#EAE5DF\],
+  .border-[#E5E0DA],
+  .border-gray-100,
+  .border-gray-200,
+  .border-slate-100,
+  .border-slate-200 {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  /* Amber / Warning boxes in dark mode */
+  .bg-amber-50,
+  .bg-amber-50\/80 {
+    background-color: rgba(180, 110, 30, 0.2) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+  }
+  .text-amber-900,
+  .text-amber-950,
+  .text-amber-800,
+  .text-amber-700 {
+    color: #FDE68A !important;
+  }
+
+  /* Soft Rose / Pink boxes in dark mode */
+  .bg-rose-50,
+  .bg-pink-50,
+  .bg-[#E9B6B6]\/10,
+  .bg-[#E9B6B6]\/15,
+  .bg-[#E9B6B6]\/20 {
+    background-color: rgba(233, 182, 182, 0.18) !important;
+  }
+
+  /* Soft Green / Sage boxes in dark mode */
+  .bg-emerald-50,
+  .bg-green-50,
+  .bg-[#A3B899]\/10,
+  .bg-[#A3B899]\/15,
+  .bg-[#A3B899]\/20 {
+    background-color: rgba(163, 184, 153, 0.2) !important;
+  }
+
+  /* Soft Indigo / Purple / Blue boxes in dark mode */
+  .bg-indigo-50,
+  .bg-purple-50,
+  .bg-blue-50,
+  .bg-sky-50 {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+  }
+
+  /* Gray light chips & tags in dark mode */
+  .bg-gray-50,
+  .bg-slate-50,
+  .bg-gray-100 {
+    background-color: #2D2926 !important;
+  }
+
+  /* Form inputs, textareas, selects */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    background-color: #2D2926 !important;
+    color: #E6E1DA !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #8C8680 !important;
+  }
+
+  /* Hover state overrides */
+  .hover\:bg-gray-50:hover,
+  .hover\:bg-[#FAFAF9]:hover,
+  .hover\:bg-gray-100:hover {
+    background-color: #2D2926 !important;
+  }
+
+  /* Gradient stop overrides for dynamic widgets */
+  .from-\[\#FAF8F5\],
+  .from-[#FAF8F5],
+  .from-white {
+    --tw-gradient-from: #221F1D !important;
+  }
+
+  .via-white {
+    --tw-gradient-via: #221F1D !important;
+  }
+
+  .to-emerald-50\/30,
+  .to-rose-50\/30,
+  .to-amber-50\/30,
+  .to-indigo-50\/30,
+  .to-purple-50\/30,
+  .to-\[\#F5F8F4\] {
+    --tw-gradient-to: #181615 !important;
+  }
+
+  /* Dialogs, Modals, Drawers */
+  [role="dialog"],
+  .custom-modal {
+    background-color: #221F1D !important;
+    color: #E6E1DA !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+}
