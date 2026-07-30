@@ -998,11 +998,9 @@ export default function SettingsPage() {
               </Button>
             </div>
 
-            <Link to="/dons" onClick={() => setActiveModal(null)}>
-              <Button className="w-full bg-[#E9B6B6] hover:bg-[#D9A5A5] text-white rounded-2xl h-11 text-xs font-bold mt-2">
-                Voir toutes les options de don libre →
-              </Button>
-            </Link>
+            <Button disabled className="w-full bg-[#E9B6B6]/50 text-white rounded-2xl h-11 text-xs font-bold mt-2 cursor-not-allowed">
+              Dons — prochainement
+            </Button>
           </div>
         </div>
       )}

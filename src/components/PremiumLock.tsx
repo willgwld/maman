@@ -2,7 +2,6 @@ import { Heart, Sparkles, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePremium } from "@/lib/premium-context";
-import { Link } from "react-router-dom";
 
 export function PremiumLock({ featureName }: { featureName: string }) {
   const { activatePremium } = usePremium();
@@ -33,15 +32,14 @@ export function PremiumLock({ featureName }: { featureName: string }) {
             Activer MamanZen Plus
           </Button>
 
-          <Link to="/dons" className="flex-1">
-            <Button 
-              variant="outline"
-              className="w-full border-[#E9B6B6] text-[#4A4A4A] hover:bg-[#E9B6B6]/10 rounded-2xl py-6 text-sm font-bold gap-1.5"
-            >
-              <Heart className="w-4 h-4 text-[#E9B6B6] fill-current" />
-              Soutenir le projet
-            </Button>
-          </Link>
+          <Button 
+            variant="outline"
+            disabled
+            className="w-full border-[#E9B6B6] text-[#4A4A4A] rounded-2xl py-6 text-sm font-bold gap-1.5 cursor-not-allowed"
+          >
+            <Heart className="w-4 h-4 text-[#E9B6B6] fill-current" />
+            Soutien — Bientôt
+          </Button>
         </div>
       </CardContent>
     </Card>

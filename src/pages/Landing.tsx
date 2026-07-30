@@ -475,7 +475,7 @@ export default function Landing() {
               </Link>
             </div>
 
-            {/* Support / Donations Tier */}
+            {/* Support / Donations Tier — coming soon */}
             <div className="bg-gradient-to-br from-[#E9B6B6] to-[#d99f9f] p-8 sm:p-10 rounded-3xl text-white shadow-md flex flex-col justify-between relative">
               <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1">
                 <Gift className="w-3.5 h-3.5" /> Solidaire
@@ -484,11 +484,10 @@ export default function Landing() {
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold mb-4">
                   💖 Soutien au projet
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Espace Dons Libre</h3>
-                <p className="text-sm text-white/90 mb-6">Aidez-nous à garder MamanZen 100% indépendant et sans publicité.</p>
+                <h3 className="text-2xl font-bold mb-2">Soutien Libre</h3>
+                <p className="text-sm text-white/90 mb-6">MamanZen reste 100% gratuit et sans publicité. Merci pour votre soutien.</p>
                 <div className="mb-8">
-                  <span className="text-4xl sm:text-5xl font-bold">Don libre</span>
-                  <span className="text-white/80 text-sm"> (à partir de 2 €)</span>
+                  <span className="text-4xl sm:text-5xl font-bold">Bientôt</span>
                 </div>
                 <ul className="space-y-3 mb-8 text-sm text-white/95">
                   <li className="flex items-center gap-3"><Check className="w-5 h-5 text-white" /> Finance les serveurs et les requêtes IA</li>
@@ -496,11 +495,9 @@ export default function Landing() {
                   <li className="flex items-center gap-3"><Check className="w-5 h-5 text-white" /> Zéro revente de données personnelles</li>
                 </ul>
               </div>
-              <Link to="/dons">
-                <Button className="w-full h-12 rounded-2xl bg-white text-[#E9B6B6] hover:bg-gray-50 font-bold text-sm shadow-sm">
-                  Soutenir le projet 💖
-                </Button>
-              </Link>
+              <div className="w-full h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-sm text-white/90">
+                Prochainement
+              </div>
             </div>
           </div>
         </div>
@@ -567,7 +564,7 @@ export default function Landing() {
             <Link to="/legal?tab=disclaimer" className="hover:text-[#E9B6B6] transition-colors">Avertissement Médical</Link>
             <Link to="/legal?tab=cgu" className="hover:text-white transition-colors">Mentions Légales & CGU</Link>
             <Link to="/legal?tab=privacy" className="hover:text-white transition-colors">Confidentialité (RGPD)</Link>
-            <Link to="/dons" className="hover:text-white transition-colors">Soutenir MamanZen 💖</Link>
+            <span className="text-gray-500">Soutenir MamanZen 💖</span>
           </div>
 
           <div className="text-center md:text-right">
