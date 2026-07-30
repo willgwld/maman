@@ -227,14 +227,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Benevolent Notification Permission Modal */}
       <NotificationPermissionModal />
 
-      {/* Bottom Navigation Mobile - 5 Core Essential Tabs */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#201D1B]/95 backdrop-blur-md border-t border-[#EAE5DF] dark:border-[#332E2A] z-40 shadow-lg px-2 py-1.5 pb-safe">
-        <div className="flex items-center justify-around w-full max-w-md mx-auto">
+      {/* Bottom Navigation Mobile - 4 Core Tabs */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#201D1B]/95 backdrop-blur-md border-t border-[#EAE5DF] dark:border-[#332E2A] z-40 shadow-lg px-2 py-2 pb-safe">
+        <div className="flex items-center justify-around w-full max-w-sm mx-auto">
           <MobileNavItem to="/dashboard" icon={Home} label="Accueil" />
           <MobileNavItem to="/tracker" icon={ClipboardList} label="Suivi" />
           <MobileNavItem to="/chat" icon={MessageSquareHeart} label="Sage-IA" />
           <MobileNavItem to="/checklists" icon={CheckSquare} label="Checklists" />
-          <MobileNavItem to="/settings" icon={Settings} label="Compte" />
         </div>
       </nav>
     </div>
