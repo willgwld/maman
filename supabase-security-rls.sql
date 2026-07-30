@@ -30,6 +30,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS baby_birth_date DATE;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hide_tracking BOOLEAN DEFAULT FALSE;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS medical_conditions TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT 'Rose Poudré';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Activation de RLS sur 'profiles'
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;

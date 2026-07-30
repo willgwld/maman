@@ -47,11 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [loading, setLoading] = useState(true);
 
+  const fetchProfileRole = async (userId: string) => {
+    const { data } = await supabase.from("profiles").select("role").eq("id", userId).single();
+    return data?.role || "user";
+  };
+
   useEffect(() => {
     let mounted = true;
 
     if (isSupabaseConfigured) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (!mounted) return;
         if (session?.user) {
           const supaUser = {
@@ -63,6 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: session.user.email,
             }
           };
+          const role = await fetchProfileRole(supaUser.id);
+          if (!mounted) return;
+          supaUser.user_metadata.role = role;
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
         }
@@ -71,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) setLoading(false);
       });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!mounted) return;
         if (session?.user) {
           const supaUser = {
@@ -83,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: session.user.email,
             }
           };
+          const role = await fetchProfileRole(supaUser.id);
+          supaUser.user_metadata.role = role;
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
         } else {

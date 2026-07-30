@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Users, 
   Database, 
@@ -183,6 +184,7 @@ function exportToCSV(filename: string, rows: Record<string, any>[]) {
 
 export default function AdminDashboard() {
   const { user, isSupabaseConfigured, userRole, signOut } = useAuth();
+  const navigate = useNavigate();
 
   // Mobile sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -391,13 +393,12 @@ Règles strictes :
       return;
     }
 
-    const stageMode = newUser.stage === "postpartum" ? "postpartum" : "pregnancy";
+    const stage = newUser.stage === "postpartum" ? "postpartum" : "pregnancy";
     await addAdminUser({
       name: newUser.name,
       email: newUser.email,
-      stageMode,
-      currentWeek: newUser.current_week,
-      maternity_hospital: newUser.maternity_hospital
+      stage,
+      current_week: newUser.current_week,
     });
 
     const created: UserProfile = {
@@ -678,7 +679,7 @@ Règles strictes :
 
           <div className="flex items-center gap-2 flex-wrap">
             <Button
-              onClick={fetchSupabaseUsers}
+              onClick={loadRealUserData}
               variant="outline"
               size="sm"
               className="rounded-2xl border-[#EAE5DF] bg-[#FAF8F5] hover:bg-white text-xs font-bold gap-1.5"

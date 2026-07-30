@@ -151,8 +151,8 @@ export default function Tracker() {
   };
 
   const deleteLog = async (id: string) => {
-    const updatedLogs = await deleteSymptomLog(id);
-    setLogs(updatedLogs as any);
+    await deleteSymptomLog(id);
+    setLogs(logs.filter(l => l.id !== id));
   };
 
   // Trends calculation (7 and 30 days)

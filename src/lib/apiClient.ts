@@ -109,7 +109,6 @@ export async function fetchSymptomLogs(userId?: string): Promise<SymptomLogEntry
     date: row.date,
     mood: row.mood || "peaceful",
     energy: row.energy_level ? (row.energy_level >= 3 ? "high" : row.energy_level >= 2 ? "medium" : "low") : "medium",
-    sleep: "good",
     symptoms: row.symptoms || [],
     hydration: row.water_ml || 0,
     note: row.notes || "",
