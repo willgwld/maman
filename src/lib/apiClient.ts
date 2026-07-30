@@ -1,30 +1,27 @@
-// Type-safe client library for MamanZen REST API & Local Sync
+import { supabase } from "@/lib/supabase";
 
 export interface UserProfileData {
   userId?: string;
-  name: string; // Prénom de la maman
-  dueDate: string; // Date d'accouchement prévue
-  currentWeek: number | string; // Semaine actuelle de grossesse
-  stageMode: "pregnancy" | "postpartum"; // Mode grossesse ou post-partum
+  name: string;
+  dueDate: string;
+  currentWeek: number | string;
+  stageMode: "pregnancy" | "postpartum";
   postpartumWeeks?: number;
   babyBirthDate?: string;
   medicalConditions?: string;
   hideTracking?: boolean;
-  updatedAt?: string;
 }
 
 export interface SymptomLogEntry {
-  id: string;
+  id?: string;
   userId?: string;
   date: string;
-  timestamp: number;
   mood: "sad" | "okay" | "peaceful" | "happy" | "radiant";
   energy: "low" | "medium" | "high";
   sleep: "poor" | "fair" | "good" | "excellent";
   symptoms: string[];
   hydration?: number;
   note: string;
-  createdAt?: string;
 }
 
 export interface ChecklistItemData {
@@ -33,425 +30,250 @@ export interface ChecklistItemData {
   text: string;
   category: "valise" | "demarches" | "rdv" | "trousseau" | "postpartum";
   completed: boolean;
-  updatedAt?: string;
 }
 
-const DEFAULT_USER_ID = "usr_local";
-
-function getUserId(): string {
-  try {
-    const saved = localStorage.getItem("mamanzen_user");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.id || parsed.userId || parsed.email || DEFAULT_USER_ID;
-    }
-  } catch (e) {}
-  return DEFAULT_USER_ID;
+async function getCurrentUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id || null;
 }
 
 // ==========================================
-// 1. PROFIL & GROSSESSE API CLIENT
+// 1. PROFIL UTILISATEUR
 // ==========================================
 
 export async function fetchUserProfile(userId?: string): Promise<UserProfileData | null> {
-  const targetUserId = userId || getUserId();
+  const uid = userId || await getCurrentUserId();
+  if (!uid) return null;
 
-  try {
-    const res = await fetch(`/api/profile?userId=${encodeURIComponent(targetUserId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.profile) {
-        localStorage.setItem(`mamanzen_user_profile_${targetUserId}`, JSON.stringify(data.profile));
-        localStorage.setItem("mamanzen_user_profile", JSON.stringify(data.profile));
-        return data.profile;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for profile fetch", err);
-  }
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", uid)
+    .single();
 
-  const savedProfile = localStorage.getItem(`mamanzen_user_profile_${targetUserId}`) || localStorage.getItem("mamanzen_user_profile");
-  if (savedProfile) {
-    try {
-      return JSON.parse(savedProfile);
-    } catch (e) {}
-  }
+  if (error || !data) return null;
 
-  return null;
+  return {
+    userId: data.id,
+    name: data.name || "",
+    dueDate: data.due_date || "",
+    currentWeek: data.current_week || 1,
+    stageMode: data.stage_mode || "pregnancy",
+    postpartumWeeks: data.postpartum_weeks || 0,
+    babyBirthDate: data.baby_birth_date || "",
+    medicalConditions: data.medical_conditions || "",
+    hideTracking: data.hide_tracking || false,
+  };
 }
 
 export async function saveUserProfile(profile: UserProfileData): Promise<UserProfileData> {
-  const targetUserId = profile.userId || getUserId();
-  const payload = { ...profile, userId: targetUserId };
+  const uid = profile.userId || await getCurrentUserId();
+  if (!uid) throw new Error("No authenticated user");
 
-  // Local storage save
-  localStorage.setItem("mamanzen_user_profile", JSON.stringify(payload));
-  localStorage.setItem("mamanzen_user", JSON.stringify(payload));
+  const { error } = await supabase.from("profiles").upsert({
+    id: uid,
+    name: profile.name,
+    due_date: profile.dueDate || null,
+    current_week: typeof profile.currentWeek === 'number' ? profile.currentWeek : parseInt(profile.currentWeek as string) || 1,
+    stage_mode: profile.stageMode,
+    postpartum_weeks: profile.postpartumWeeks || 0,
+    baby_birth_date: profile.babyBirthDate || null,
+    medical_conditions: profile.medicalConditions || null,
+    hide_tracking: profile.hideTracking || false,
+    updated_at: new Date().toISOString(),
+  });
 
-  try {
-    const res = await fetch("/api/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.profile) {
-        return data.profile;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for profile save", err);
-  }
-
-  return payload;
+  if (error) throw error;
+  return profile;
 }
 
 // ==========================================
-// 2. HISTORIQUE DES SYMPTÔMES API CLIENT
+// 2. SYMPTÔMES
 // ==========================================
 
 export async function fetchSymptomLogs(userId?: string): Promise<SymptomLogEntry[]> {
-  const targetUserId = userId || getUserId();
+  const uid = userId || await getCurrentUserId();
+  if (!uid) return [];
 
-  try {
-    const res = await fetch(`/api/symptom-logs?userId=${encodeURIComponent(targetUserId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.logs)) {
-        localStorage.setItem(`mamanzen_daily_logs_${targetUserId}`, JSON.stringify(data.logs));
-        return data.logs;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for symptom logs fetch", err);
-  }
+  const { data, error } = await supabase
+    .from("symptom_logs")
+    .select("*")
+    .eq("user_id", uid)
+    .order("date", { ascending: false });
 
-  // Fallback to localStorage
-  const saved = localStorage.getItem(`mamanzen_daily_logs_${targetUserId}`) || localStorage.getItem("mamanzen_daily_logs");
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {}
-  }
+  if (error || !data) return [];
 
-  return [];
+  return data.map((row: any) => ({
+    id: row.id,
+    userId: row.user_id,
+    date: row.date,
+    mood: row.mood || "peaceful",
+    energy: row.energy_level ? (row.energy_level >= 3 ? "high" : row.energy_level >= 2 ? "medium" : "low") : "medium",
+    sleep: "good",
+    symptoms: row.symptoms || [],
+    hydration: row.water_ml || 0,
+    note: row.notes || "",
+  }));
 }
 
-export async function saveSymptomLog(log: Omit<SymptomLogEntry, "id"> & { id?: string }, userId?: string): Promise<SymptomLogEntry[]> {
-  const targetUserId = userId || getUserId();
-  const payload = { ...log, userId: targetUserId };
+export async function saveSymptomLog(entry: SymptomLogEntry): Promise<SymptomLogEntry> {
+  const uid = entry.userId || await getCurrentUserId();
+  if (!uid) throw new Error("No authenticated user");
 
-  try {
-    const res = await fetch("/api/symptom-logs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  const energyLevel = entry.energy === "high" ? 3 : entry.energy === "medium" ? 2 : 1;
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.logs)) {
-        localStorage.setItem(`mamanzen_daily_logs_${targetUserId}`, JSON.stringify(data.logs));
-        return data.logs;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for symptom log save", err);
-  }
+  const { error } = await supabase.from("symptom_logs").insert({
+    user_id: uid,
+    date: entry.date,
+    mood: entry.mood,
+    energy_level: energyLevel,
+    symptoms: entry.symptoms,
+    water_ml: entry.hydration || 0,
+    notes: entry.note,
+  });
 
-  // Fallback local update
-  const savedLogs = await fetchSymptomLogs(targetUserId);
-  const entryId = log.id || "log_" + Date.now();
-  const newEntry: SymptomLogEntry = {
-    ...log,
-    id: entryId,
-    userId: targetUserId,
-    timestamp: log.timestamp || Date.now()
-  };
-
-  const updated = [newEntry, ...savedLogs.filter(l => l.id !== entryId)];
-  localStorage.setItem(`mamanzen_daily_logs_${targetUserId}`, JSON.stringify(updated));
-  return updated;
+  if (error) throw error;
+  return entry;
 }
 
-export async function deleteSymptomLog(logId: string, userId?: string): Promise<SymptomLogEntry[]> {
-  const targetUserId = userId || getUserId();
-
-  try {
-    const res = await fetch(`/api/symptom-logs/${encodeURIComponent(logId)}?userId=${encodeURIComponent(targetUserId)}`, {
-      method: "DELETE"
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.logs)) {
-        localStorage.setItem(`mamanzen_daily_logs_${targetUserId}`, JSON.stringify(data.logs));
-        return data.logs;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for symptom log deletion", err);
-  }
-
-  const savedLogs = await fetchSymptomLogs(targetUserId);
-  const updated = savedLogs.filter(l => l.id !== logId);
-  localStorage.setItem(`mamanzen_daily_logs_${targetUserId}`, JSON.stringify(updated));
-  return updated;
+export async function deleteSymptomLog(logId: string): Promise<void> {
+  const { error } = await supabase.from("symptom_logs").delete().eq("id", logId);
+  if (error) throw error;
 }
 
 // ==========================================
-// 3. CHECKLISTS DYNAMIQUES API CLIENT
+// 3. CHECKLISTS
 // ==========================================
 
 export async function fetchChecklists(userId?: string): Promise<ChecklistItemData[]> {
-  const targetUserId = userId || getUserId();
+  const uid = userId || await getCurrentUserId();
+  if (!uid) return [];
 
-  try {
-    const res = await fetch(`/api/checklists?userId=${encodeURIComponent(targetUserId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(data.items));
-        return data.items;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for checklists fetch", err);
-  }
+  const { data, error } = await supabase
+    .from("checklists")
+    .select("*")
+    .eq("user_id", uid)
+    .order("created_at", { ascending: true });
 
-  const saved = localStorage.getItem(`mamanzen_checklists_${targetUserId}`) || localStorage.getItem("mamanzen_checklists_v2");
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {}
-  }
+  if (error || !data) return [];
 
-  return [];
+  return data.map((row: any) => ({
+    id: row.id,
+    userId: row.user_id,
+    text: row.text,
+    category: row.category || "valise",
+    completed: row.completed || false,
+  }));
 }
 
-export async function toggleChecklistItem(itemId: string, completed: boolean, userId?: string): Promise<ChecklistItemData[]> {
-  const targetUserId = userId || getUserId();
-
-  try {
-    const res = await fetch(`/api/checklists/${encodeURIComponent(itemId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: targetUserId, completed })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(data.items));
-        return data.items;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for checklist toggle", err);
-  }
-
-  const current = await fetchChecklists(targetUserId);
-  const updated = current.map(i => i.id === itemId ? { ...i, completed } : i);
-  localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(updated));
-  return updated;
+export async function toggleChecklistItem(itemId: string, completed: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("checklists")
+    .update({ completed, updated_at: new Date().toISOString() })
+    .eq("id", itemId);
+  if (error) throw error;
 }
 
-export async function addChecklistItem(text: string, category: ChecklistItemData["category"], userId?: string): Promise<ChecklistItemData[]> {
-  const targetUserId = userId || getUserId();
+export async function addChecklistItem(item: { text: string; category: string }): Promise<void> {
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error("No authenticated user");
 
-  try {
-    const res = await fetch("/api/checklists", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: targetUserId, item: { text, category, completed: false } })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(data.items));
-        return data.items;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for checklist addition", err);
-  }
-
-  const current = await fetchChecklists(targetUserId);
-  const newItem: ChecklistItemData = {
-    id: "item_" + Date.now(),
-    text,
-    category,
-    completed: false
-  };
-  const updated = [newItem, ...current];
-  localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(updated));
-  return updated;
+  const { error } = await supabase.from("checklists").insert({
+    user_id: uid,
+    text: item.text,
+    category: item.category,
+    completed: false,
+  });
+  if (error) throw error;
 }
 
-export async function deleteChecklistItem(itemId: string, userId?: string): Promise<ChecklistItemData[]> {
-  const targetUserId = userId || getUserId();
-
-  try {
-    const res = await fetch(`/api/checklists/${encodeURIComponent(itemId)}?userId=${encodeURIComponent(targetUserId)}`, {
-      method: "DELETE"
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(data.items));
-        return data.items;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for checklist deletion", err);
-  }
-
-  const current = await fetchChecklists(targetUserId);
-  const updated = current.filter(i => i.id !== itemId);
-  localStorage.setItem(`mamanzen_checklists_${targetUserId}`, JSON.stringify(updated));
-  return updated;
+export async function deleteChecklistItem(itemId: string): Promise<void> {
+  const { error } = await supabase.from("checklists").delete().eq("id", itemId);
+  if (error) throw error;
 }
 
 // ==========================================
-// 4. GOOGLE AUTHENTICATION HELPERS
-// ==========================================
-
-export async function fetchGoogleAuthConfig(): Promise<{
-  configured: boolean;
-  clientId: string | null;
-  redirectUri: string;
-}> {
-  try {
-    const res = await fetch("/api/auth/google/config");
-    if (res.ok) {
-      const data = await res.json();
-      return {
-        configured: Boolean(data.configured),
-        clientId: data.clientId,
-        redirectUri: data.redirectUri || `${window.location.origin}/auth/callback`
-      };
-    }
-  } catch (e) {
-    console.warn("Failed to fetch Google auth config", e);
-  }
-
-  return {
-    configured: false,
-    clientId: null,
-    redirectUri: `${window.location.origin}/auth/callback`
-  };
-}
-
-export async function getGoogleAuthUrl(): Promise<{ url: string } | null> {
-  try {
-    const res = await fetch(`/api/auth/google/url?origin=${encodeURIComponent(window.location.origin)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.url) {
-        return { url: data.url };
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to get Google auth URL", e);
-  }
-
-  return null;
-}
-
-export async function verifyGoogleUserToken(dataPayload: any): Promise<any> {
-  try {
-    const res = await fetch("/api/auth/google/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dataPayload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.user) {
-        return data.user;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to verify Google user token", e);
-  }
-
-  return null;
-}
-
-// ==========================================
-// 5. ADMIN BACK-OFFICE API CLIENT
+// 4. ADMIN (via Supabase direct)
 // ==========================================
 
 export async function fetchAdminUsers(): Promise<any[]> {
-  try {
-    const res = await fetch("/api/admin/users");
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.users)) {
-        return data.users;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch admin users from API", e);
-  }
-  return [];
+  const { data, error } = await supabase.from("profiles").select("*");
+  if (error || !data) return [];
+  return data;
 }
 
 export async function fetchAdminStats(): Promise<any> {
-  try {
-    const res = await fetch("/api/admin/stats");
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.stats) {
-        return data.stats;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch admin stats", e);
-  }
-  return null;
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+  const { count: totalLogs } = await supabase.from("symptom_logs").select("*", { count: "exact", head: true });
+  const { count: totalPosts } = await supabase.from("community_posts").select("*", { count: "exact", head: true });
+  const { count: newUsersThisMonth } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", startOfMonth);
+
+  return {
+    totalUsers: totalUsers || 0,
+    totalLogs: totalLogs || 0,
+    totalPosts: totalPosts || 0,
+    newUsersThisMonth: newUsersThisMonth || 0,
+    dau: 0,
+    wau: 0,
+    mau: 0,
+  };
 }
 
-export async function addAdminUser(userPayload: { name: string; email: string; stageMode?: string; currentWeek?: number; maternity_hospital?: string }): Promise<any> {
-  try {
-    const res = await fetch("/api/admin/users/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userPayload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.user || null;
-    }
-  } catch (e) {
-    console.warn("Failed to add user via admin API", e);
-  }
-  return null;
+export async function addAdminUser(data: { name: string; email: string; stage: string; current_week: number }): Promise<any> {
+  const { error } = await supabase.from("profiles").insert({
+    name: data.name,
+    email: data.email,
+    role: "user",
+    stage_mode: data.stage === "enceinte" ? "pregnancy" : "postpartum",
+    current_week: data.current_week,
+  });
+  if (error) throw error;
+  return { success: true };
 }
 
-export async function toggleAdminUserStatus(userId: string, newStatus: "active" | "suspended"): Promise<boolean> {
-  try {
-    const res = await fetch("/api/admin/users/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, status: newStatus })
-    });
-    return res.ok;
-  } catch (e) {
-    console.warn("Failed to toggle status via admin API", e);
-    return false;
-  }
+export async function toggleAdminUserStatus(userId: string, status: string): Promise<any> {
+  const { error } = await supabase.from("profiles").update({ status, updated_at: new Date().toISOString() }).eq("id", userId);
+  if (error) throw error;
+  return { success: true, status };
 }
 
-export async function deleteAdminUser(userId: string): Promise<boolean> {
-  try {
-    const res = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
-      method: "DELETE"
-    });
-    return res.ok;
-  } catch (e) {
-    console.warn("Failed to delete user via admin API", e);
-    return false;
-  }
+export async function deleteAdminUser(userId: string): Promise<any> {
+  const { error } = await supabase.from("profiles").delete().eq("id", userId);
+  if (error) throw error;
+  return { success: true };
 }
 
+// ==========================================
+// 5. AUTH (Google)
+// ==========================================
 
+export async function fetchGoogleAuthConfig(): Promise<{ configured: boolean; clientId: string | null }> {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || null;
+  return { configured: Boolean(clientId), clientId };
+}
+
+export async function getGoogleAuthUrl(): Promise<string | null> {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin + "/auth/callback" },
+  });
+  if (error || !data) return null;
+  return data.url;
+}
+
+export async function verifyGoogleUserToken(accessToken: string): Promise<any> {
+  const { data, error } = await supabase.auth.getUser(accessToken);
+  if (error || !data?.user) return null;
+  return {
+    id: data.user.id,
+    email: data.user.email,
+    name: data.user.user_metadata?.name || data.user.user_metadata?.full_name || "",
+    avatar: data.user.user_metadata?.avatar_url || "",
+  };
+}

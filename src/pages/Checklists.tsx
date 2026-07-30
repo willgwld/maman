@@ -36,11 +36,8 @@ export default function Checklists() {
     if (!target) return;
     const newCompleted = !target.completed;
     
-    // Optimistic UI update
+    await toggleChecklistItem(id, newCompleted);
     setItems(items.map(i => i.id === id ? { ...i, completed: newCompleted } : i));
-    
-    const updated = await toggleChecklistItem(id, newCompleted);
-    if (updated) setItems(updated as any);
   };
 
   const addItem = async (e: React.FormEvent) => {
@@ -51,16 +48,14 @@ export default function Checklists() {
     const text = newItemText.trim();
     setNewItemText("");
 
-    const updated = await addChecklistItem(text, category);
-    if (updated) setItems(updated as any);
+    await addChecklistItem({ text, category });
+    const fetched = await fetchChecklists();
+    if (fetched) setItems(fetched as any);
   };
 
   const deleteItem = async (id: string) => {
-    // Optimistic UI update
+    await deleteChecklistItem(id);
     setItems(items.filter((i) => i.id !== id));
-    
-    const updated = await deleteChecklistItem(id);
-    if (updated) setItems(updated as any);
   };
 
   const filteredItems = items.filter((i) => {

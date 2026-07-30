@@ -53,8 +53,8 @@ export default function SettingsPage() {
   const [stageMode, setStageMode] = useState<"pregnancy" | "postpartum">("pregnancy");
   const [currentWeek, setCurrentWeek] = useState(24);
   const [postpartumWeeks, setPostpartumWeeks] = useState(6);
-  const [dueDate, setDueDate] = useState("2026-11-15");
-  const [babyBirthDate, setBabyBirthDate] = useState("2026-06-01");
+  const [dueDate, setDueDate] = useState("");
+  const [babyBirthDate, setBabyBirthDate] = useState("");
   const [hideTracking, setHideTracking] = useState(false);
   const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
   const [medicalConditions, setMedicalConditions] = useState("");

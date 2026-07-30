@@ -187,7 +187,7 @@ export default function AdminDashboard() {
   // Mobile sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Verify Admin Security or Password Auth
+  // Verify Admin Security via Supabase role
   const isAdminRole = Boolean(
     user && (
       userRole === "admin" ||
@@ -198,31 +198,9 @@ export default function AdminDashboard() {
     )
   );
 
-  // Admin password login state (password: Qwerty1@)
-  const [adminPasswordInput, setAdminPasswordInput] = useState("");
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem("mamanzen_admin_authenticated") === "true";
-  });
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const isAuthorized = isAdminRole || isAdminAuthenticated;
-
-  const handlePasswordLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminPasswordInput === "Qwerty1@") {
-      setIsAdminAuthenticated(true);
-      localStorage.setItem("mamanzen_admin_authenticated", "true");
-      setPasswordError(null);
-      showToast("Connexion à l'administration réussie !");
-    } else {
-      setPasswordError("Mot de passe incorrect. Veuillez réessayer.");
-    }
-  };
+  const isAuthorized = isAdminRole;
 
   const handleAdminLogout = () => {
-    setIsAdminAuthenticated(false);
-    localStorage.removeItem("mamanzen_admin_authenticated");
     if (signOut) signOut();
     showToast("Déconnexion de l'espace d'administration.");
   };
@@ -506,7 +484,6 @@ Règles strictes :
   const totalDailyLogs = users.reduce((acc, u) => acc + u.daily_logs_count, 0);
   const totalAiChats = users.reduce((acc, u) => acc + u.ai_chats_count, 0);
 
-  // Render Password Access Form if not authorized
   if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4 font-sans text-[#4A4A4A]">
@@ -519,61 +496,19 @@ Règles strictes :
             <span className="bg-[#A3B899]/20 text-[#6B8E5E] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
               Espace Administrateur
             </span>
-            <h2 className="text-2xl font-black text-[#4A4A4A]">Connexion Dashboard</h2>
+            <h2 className="text-2xl font-black text-[#4A4A4A]">Accès restreint</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Veuillez saisir le mot de passe administrateur pour accéder à l'interface de gestion MamanZen.
+              Seuls les administrateurs MamanZen peuvent accéder à cet espace. Connecte-toi avec un compte admin via Google pour accéder au tableau de bord.
             </p>
           </div>
 
-          <form onSubmit={handlePasswordLogin} className="space-y-4 text-left">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#4A4A4A] flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-muted-foreground" />
-                Mot de passe Admin
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Saisissez le mot de passe..."
-                  value={adminPasswordInput}
-                  onChange={(e) => {
-                    setAdminPasswordInput(e.target.value);
-                    if (passwordError) setPasswordError(null);
-                  }}
-                  autoFocus
-                  required
-                  className="w-full pl-4 pr-10 py-3 bg-[#FAF8F5] border border-[#EAE5DF] rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#A3B899]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#4A4A4A] p-1"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {passwordError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs font-semibold text-red-600 flex items-center gap-2 animate-in fade-in">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
-                <span>{passwordError}</span>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full bg-[#4A4A4A] hover:bg-[#333333] text-white rounded-2xl h-11 text-xs font-bold gap-2 shadow-xs"
+          <div className="border-t border-[#EAE5DF] pt-4 text-center">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-[11px] text-[#6B8E5E] font-bold mt-2 hover:underline"
             >
-              Accéder au Dashboard Admin <ArrowRight className="w-4 h-4" />
-            </Button>
-          </form>
-
-          <div className="pt-4 border-t border-[#EAE5DF] flex justify-between items-center text-xs">
-            <a href="/dashboard" className="text-muted-foreground hover:text-[#4A4A4A] font-semibold flex items-center gap-1">
-              ← Retour au site
-            </a>
-            <span className="text-[10px] text-muted-foreground font-mono">MamanZen Admin v2.0</span>
+              ← Retourner au tableau de bord utilisateur
+            </button>
           </div>
         </div>
       </div>

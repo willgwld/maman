@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
-import { saveUserProfile } from "@/lib/apiClient";
+
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -47,56 +47,41 @@ export default function Onboarding() {
     const dueDate = formData.dueDate;
     const currentWeek = parseInt(formData.currentWeek) || null;
 
-    let userId: string;
-    let email: string;
-
     const { data: { user: supaUser } } = await supabase.auth.getUser();
-    if (supaUser?.id) {
-      userId = supaUser.id;
-      email = supaUser.email || "";
-
-      await supabase.from('profiles').upsert({
-        id: userId,
-        name,
-        email,
-        current_week: currentWeek,
-        due_date: dueDate || null,
-        stage_mode: formData.mode,
-        updated_at: new Date().toISOString(),
-      });
-
-      await supabase.auth.updateUser({
-        data: { onboarding_completed: true, name }
-      });
-    } else {
-      userId = "usr_" + Math.random().toString(36).substring(2, 9);
-      email = "";
+    if (!supaUser?.id) {
+      navigate("/auth", { replace: true });
+      return;
     }
 
-    await saveUserProfile({
-      userId,
+    await supabase.from('profiles').upsert({
+      id: supaUser.id,
       name,
-      dueDate: dueDate || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-      currentWeek: currentWeek || 20,
-      stageMode: formData.mode
+      email: supaUser.email || "",
+      current_week: currentWeek,
+      due_date: dueDate || null,
+      stage_mode: formData.mode,
+      updated_at: new Date().toISOString(),
+    });
+
+    await supabase.auth.updateUser({
+      data: { onboarding_completed: true, name }
     });
 
     const userObj = {
-      id: userId,
-      email,
+      id: supaUser.id,
+      email: supaUser.email || "",
       user_metadata: {
         full_name: name,
         name,
         onboarding_completed: true,
-        id: userId,
-        email,
+        id: supaUser.id,
+        email: supaUser.email || "",
       }
     };
 
     setLocalUser(userObj);
     localStorage.setItem("mamanzen_onboarding_completed", "true");
     localStorage.setItem("mamanzen_onboarding_just_completed", "true");
-    localStorage.setItem("mamanzen_user", JSON.stringify(userObj.user_metadata));
     navigate("/dashboard", { replace: true });
   };
 

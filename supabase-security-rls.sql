@@ -24,6 +24,12 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS current_week INT DEFAULT 1;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS due_date DATE;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stage_mode TEXT DEFAULT 'pregnancy';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS postpartum_weeks INT DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS baby_birth_date DATE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hide_tracking BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS medical_conditions TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT 'Rose Poudré';
 
 -- Activation de RLS sur 'profiles'
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -45,6 +51,10 @@ CREATE POLICY "Users can insert their own profile"
 
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can delete their own profile"
+  ON public.profiles FOR DELETE
   USING (auth.uid() = id);
 
 CREATE POLICY "Admins can view all profiles"
@@ -177,7 +187,37 @@ CREATE POLICY "Admins full management on community posts"
   );
 
 
--- 6. Trigger automatique pour la création du profil utilisateur
+-- 6. Table 'checklists' (Listes de préparation & charge mentale)
+CREATE TABLE IF NOT EXISTS public.checklists (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  text TEXT NOT NULL,
+  category TEXT DEFAULT 'valise',
+  completed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.checklists ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own checklists" ON public.checklists;
+DROP POLICY IF EXISTS "Admins can view all checklists" ON public.checklists;
+
+CREATE POLICY "Users can manage their own checklists"
+  ON public.checklists FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Admins can view all checklists"
+  ON public.checklists FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    )
+  );
+
+-- 7. Trigger automatique pour la création du profil utilisateur
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN

@@ -86,10 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
         } else {
-          const savedLocal = localStorage.getItem("mamanzen_user");
-          if (!savedLocal) {
-            setUser(null);
-          }
+          setUser(null);
+          localStorage.removeItem("mamanzen_user");
         }
         setLoading(false);
       });

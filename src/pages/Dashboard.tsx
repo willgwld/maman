@@ -32,14 +32,13 @@ export default function Dashboard() {
   }>({
     name: displayName,
     mode: "pregnancy",
-    dueDate: "2026-10-15",
+    dueDate: "",
     currentWeek: 20
   });
 
   const [quote, setQuote] = useState("");
 
   useEffect(() => {
-    // Pick a daily quote based on date
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     setQuote(QUOTES[dayOfYear % QUOTES.length]);
 
@@ -49,7 +48,7 @@ export default function Dashboard() {
         setUser({
           name: p.name || displayName,
           mode: p.stageMode || "pregnancy",
-          dueDate: p.dueDate || "2026-10-15",
+          dueDate: p.dueDate || "",
           currentWeek: typeof p.currentWeek === 'number' ? p.currentWeek : parseInt(p.currentWeek as string) || 20
         });
       }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePremium } from "@/lib/premium-context";
 import { getPregnancyInfo } from "@/lib/pregnancy";
 import { MedicalDisclaimerBanner } from "@/components/MedicalDisclaimer";
+import { useAuth } from "@/components/AuthProvider";
 
 interface AIResponse {
   greeting: string;
@@ -18,6 +19,8 @@ export default function Recommendations() {
   const [data, setData] = useState<AIResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { isPremium } = usePremium();
+  const { user: authUser } = useAuth();
+  const authName = authUser?.user_metadata?.name || authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || "Maman";
 
   const fetchRecommendations = async () => {
     setLoading(true);
@@ -28,7 +31,7 @@ export default function Recommendations() {
         // Return generic mock data for free tier immediately
         await new Promise(r => setTimeout(r, 800));
         setData({
-          greeting: "Bonjour Sarah,",
+          greeting: "Bonjour " + authName + ",",
           analysis: "Voici votre conseil quotidien général pour ce deuxième trimestre.",
           tips: [
             "Pensez à bien vous hydrater tout au long de la journée.",
@@ -45,7 +48,7 @@ export default function Recommendations() {
       const storedUserData = localStorage.getItem('mamanzen_user');
       
       let trimester = 2;
-      let userName = "Sarah";
+      let userName = authName;
       if (storedUserData) {
         try {
           const u = JSON.parse(storedUserData);
