@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/lib/supabase";
 import { saveUserProfile } from "@/lib/apiClient";
 
 export default function Onboarding() {
@@ -42,35 +43,55 @@ export default function Onboarding() {
   };
 
   const handleFinish = async () => {
-    const userProfile = {
-      name: formData.name.trim() || "Marie",
-      mode: formData.mode,
-      dueDate: formData.dueDate || "2026-10-15",
-      currentWeek: formData.currentWeek || "20",
-      onboardingCompleted: true,
-      createdAt: new Date().toISOString(),
-    };
+    const name = formData.name.trim();
+    const dueDate = formData.dueDate;
+    const currentWeek = parseInt(formData.currentWeek) || null;
 
-    const userId = "usr_" + Math.random().toString(36).substring(2, 9);
+    let userId: string;
+    let email: string;
 
-    const userObj = {
-      id: userId,
-      email: `${formData.name.toLowerCase().replace(/\s+/g, '') || 'maman'}@mamanzen.app`,
-      user_metadata: {
-        full_name: userProfile.name,
-        name: userProfile.name,
-        onboarding_completed: true,
-        ...userProfile
-      }
-    };
+    const { data: { user: supaUser } } = await supabase.auth.getUser();
+    if (supaUser?.id) {
+      userId = supaUser.id;
+      email = supaUser.email || "";
+
+      await supabase.from('profiles').upsert({
+        id: userId,
+        name,
+        email,
+        current_week: currentWeek,
+        due_date: dueDate || null,
+        stage_mode: formData.mode,
+        updated_at: new Date().toISOString(),
+      });
+
+      await supabase.auth.updateUser({
+        data: { onboarding_completed: true, name }
+      });
+    } else {
+      userId = "usr_" + Math.random().toString(36).substring(2, 9);
+      email = "";
+    }
 
     await saveUserProfile({
       userId,
-      name: userProfile.name,
-      dueDate: userProfile.dueDate,
-      currentWeek: parseInt(userProfile.currentWeek) || 20,
-      stageMode: userProfile.mode
+      name,
+      dueDate: dueDate || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
+      currentWeek: currentWeek || 20,
+      stageMode: formData.mode
     });
+
+    const userObj = {
+      id: userId,
+      email,
+      user_metadata: {
+        full_name: name,
+        name,
+        onboarding_completed: true,
+        id: userId,
+        email,
+      }
+    };
 
     setLocalUser(userObj);
     localStorage.setItem("mamanzen_onboarding_completed", "true");

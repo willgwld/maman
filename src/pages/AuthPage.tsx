@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
-import { getGoogleAuthUrl, fetchGoogleAuthConfig, saveUserProfile } from '@/lib/apiClient';
 import { 
   Heart, 
   Sparkles, 
@@ -11,7 +10,6 @@ import {
   AlertCircle, 
   ArrowLeft,
   Loader2,
-  CheckCircle2,
   Lock,
   Smartphone,
   Zap
@@ -51,44 +49,6 @@ export default function AuthPage() {
     }
   }, [searchParams, isFromOnboarding]);
 
-  // Listen for OAuth postMessage success from popup
-  useEffect(() => {
-    const handleOAuthMessage = async (event: MessageEvent) => {
-      const origin = event.origin;
-      if (!origin.endsWith('.run.app') && !origin.includes('localhost') && !origin.includes('127.0.0.1') && !origin.endsWith('.vercel.app')) {
-        return;
-      }
-
-      if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
-        const payloadUser = event.data.user;
-        if (payloadUser) {
-          setLocalUser(payloadUser);
-          const meta = payloadUser.user_metadata || {};
-          const realName = meta.name || meta.full_name || 'Maman';
-          if (meta.dueDate || meta.currentWeek) {
-            await saveUserProfile({
-              userId: payloadUser.id,
-              name: realName,
-              dueDate: meta.dueDate || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-              currentWeek: meta.currentWeek || 14,
-              stageMode: meta.stageMode || 'pregnancy'
-            });
-            localStorage.setItem('mamanzen_onboarding_completed', 'true');
-            navigate('/dashboard', { replace: true });
-          } else {
-            navigate('/onboarding', { replace: true });
-          }
-        }
-      } else if (event.data?.type === 'OAUTH_AUTH_ERROR') {
-        setError("Erreur lors de la connexion Google. Veuillez réessayer.");
-        setLoadingProvider(null);
-      }
-    };
-
-    window.addEventListener('message', handleOAuthMessage);
-    return () => window.removeEventListener('message', handleOAuthMessage);
-  }, [navigate, setLocalUser]);
-
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
@@ -103,41 +63,10 @@ export default function AuthPage() {
 
   const handleGoogleLogin = async () => {
     setError(null);
-
-    // Rule: Unregistered users cannot sign up without completing onboarding first
-    if (isSignUp && !isFromOnboarding && localStorage.getItem('mamanzen_onboarding_completed') !== 'true') {
-      setError("Avant de vous inscrire, vous devez impérativement réaliser le questionnaire d'accueil (Onboarding).");
-      return;
-    }
-
     setLoadingProvider('google');
 
     try {
-      // 1. Pre-open popup synchronously to prevent browser popup blockers
-      let popup: Window | null = null;
-      try {
-        popup = window.open('about:blank', 'google_oauth_popup', 'width=600,height=700,top=100,left=100');
-        if (popup) {
-          popup.document.write(`
-            <!DOCTYPE html>
-            <html>
-              <head><title>Connexion Google MamanZen...</title></head>
-              <body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#FAF7F2;color:#4A4A4A;">
-                <div style="text-align:center;">
-                  <h3 style="margin-bottom:8px;">Chargement de Google...</h3>
-                  <p style="font-size:13px;color:#70757A;">Veuillez patienter pendant la redirection.</p>
-                </div>
-              </body>
-            </html>
-          `);
-        }
-      } catch (e) {
-        console.warn("Popup blocked or not supported:", e);
-      }
-
-      // 2. Check if Supabase is configured for native OAuth
       if (isSupabaseConfigured) {
-        if (popup) popup.close();
         const { error: supaErr } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -148,51 +77,9 @@ export default function AuthPage() {
         return;
       }
 
-      // 3. Get Auth URL from server
-      const { url } = await getGoogleAuthUrl();
-
-      if (popup && !popup.closed) {
-        popup.location.href = url;
-      } else {
-        // Fallback: direct window redirect or instant login if popups blocked
-        window.location.href = url;
-      }
+      setError("L'authentification n'est pas configurée. Contacte l'administrateur.");
     } catch (err: any) {
-      console.warn("Google OAuth login error:", err);
-      // Fail-safe direct user authentication so user is never blocked
-      const pendingStr = localStorage.getItem('mamanzen_pending_onboarding') || localStorage.getItem('mamanzen_user');
-      let pendingData: any = null;
-      if (pendingStr) {
-        try { pendingData = JSON.parse(pendingStr); } catch (e) {}
-      }
-
-      const realName = pendingData?.name || pendingData?.full_name || 'Maman';
-      const userObj = {
-        id: 'usr_google_' + Math.random().toString(36).substring(2, 9),
-        email: pendingData?.email || 'maman@mamanzen.app',
-        user_metadata: {
-          full_name: realName,
-          name: realName,
-          provider: 'google',
-          google_verified: true,
-          ...(pendingData || {})
-        }
-      };
-
-      setLocalUser(userObj);
-      if (pendingData?.dueDate || pendingData?.currentWeek) {
-        await saveUserProfile({
-          userId: userObj.id,
-          name: realName,
-          dueDate: pendingData.dueDate || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-          currentWeek: parseInt(pendingData.currentWeek) || 14,
-          stageMode: pendingData.mode || 'pregnancy'
-        });
-        localStorage.setItem('mamanzen_onboarding_completed', 'true');
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/onboarding', { replace: true });
-      }
+      setError(err.message || "Erreur lors de la connexion. Veuillez réessayer.");
     } finally {
       setTimeout(() => setLoadingProvider(null), 1200);
     }

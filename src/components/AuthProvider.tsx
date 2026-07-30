@@ -34,8 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const metadata = JSON.parse(saved);
         return {
-          id: metadata.id || "usr_local",
-          email: metadata.email || "maman@mamanzen.app",
+          id: metadata.id,
+          email: metadata.email,
           user_metadata: metadata,
         };
       } catch (e) {
@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Restore Supabase session on startup if configured
     if (isSupabaseConfigured) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (!mounted) return;
@@ -60,13 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email,
             user_metadata: {
               ...session.user.user_metadata,
-              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "Maman",
-              onboarding_completed: true,
+              id: session.user.id,
+              email: session.user.email,
             }
           };
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
-          localStorage.setItem("mamanzen_onboarding_completed", "true");
         }
         setLoading(false);
       }).catch(() => {
@@ -81,15 +79,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email,
             user_metadata: {
               ...session.user.user_metadata,
-              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "Maman",
-              onboarding_completed: true,
+              id: session.user.id,
+              email: session.user.email,
             }
           };
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
-          localStorage.setItem("mamanzen_onboarding_completed", "true");
         } else {
-          // Explicit signout or no session
           const savedLocal = localStorage.getItem("mamanzen_user");
           if (!savedLocal) {
             setUser(null);
@@ -147,4 +143,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-

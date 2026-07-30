@@ -53,9 +53,9 @@ function getUserId(): string {
 // 1. PROFIL & GROSSESSE API CLIENT
 // ==========================================
 
-export async function fetchUserProfile(userId?: string): Promise<UserProfileData> {
+export async function fetchUserProfile(userId?: string): Promise<UserProfileData | null> {
   const targetUserId = userId || getUserId();
-  
+
   try {
     const res = await fetch(`/api/profile?userId=${encodeURIComponent(targetUserId)}`);
     if (res.ok) {
@@ -70,40 +70,14 @@ export async function fetchUserProfile(userId?: string): Promise<UserProfileData
     console.warn("[MamanZen API] Offline mode for profile fetch", err);
   }
 
-  // Fallback to localStorage for the specific user
-  const savedUser = localStorage.getItem("mamanzen_user");
-  let userMeta: any = {};
-  if (savedUser) {
-    try { userMeta = JSON.parse(savedUser); } catch (e) {}
-  }
-
   const savedProfile = localStorage.getItem(`mamanzen_user_profile_${targetUserId}`) || localStorage.getItem("mamanzen_user_profile");
   if (savedProfile) {
     try {
-      const parsed = JSON.parse(savedProfile);
-      return {
-        userId: targetUserId,
-        name: parsed.name || userMeta.name || userMeta.full_name || "Maman",
-        dueDate: parsed.dueDate || userMeta.dueDate || userMeta.due_date || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-        currentWeek: parsed.currentWeek || parsed.current_week || userMeta.currentWeek || 14,
-        stageMode: parsed.stageMode || parsed.stage_mode || userMeta.stageMode || userMeta.mode || "pregnancy",
-        postpartumWeeks: parsed.postpartumWeeks || userMeta.postpartumWeeks || 1,
-        babyBirthDate: parsed.babyBirthDate || userMeta.babyBirthDate || "",
-        medicalConditions: parsed.medicalConditions || "",
-        hideTracking: Boolean(parsed.hideTracking)
-      };
+      return JSON.parse(savedProfile);
     } catch (e) {}
   }
 
-  // Build real initial profile from logged in user metadata
-  const realName = userMeta.name || userMeta.full_name || (userMeta.email ? userMeta.email.split('@')[0] : "Maman");
-  return {
-    userId: targetUserId,
-    name: realName,
-    dueDate: userMeta.dueDate || userMeta.due_date || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-    currentWeek: parseInt(userMeta.currentWeek) || 14,
-    stageMode: userMeta.stageMode || userMeta.mode || "pregnancy"
-  };
+  return null;
 }
 
 export async function saveUserProfile(profile: UserProfileData): Promise<UserProfileData> {
@@ -391,23 +365,20 @@ export async function fetchGoogleAuthConfig(): Promise<{
   };
 }
 
-export async function getGoogleAuthUrl(): Promise<{ url: string; isDemo?: boolean }> {
+export async function getGoogleAuthUrl(): Promise<{ url: string } | null> {
   try {
     const res = await fetch(`/api/auth/google/url?origin=${encodeURIComponent(window.location.origin)}`);
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.url) {
-        return { url: data.url, isDemo: data.isDemo };
+        return { url: data.url };
       }
     }
   } catch (e) {
     console.warn("Failed to get Google auth URL", e);
   }
 
-  return {
-    url: `${window.location.origin}/auth/callback?code=demo_google_${Date.now()}&provider=google`,
-    isDemo: true
-  };
+  return null;
 }
 
 export async function verifyGoogleUserToken(dataPayload: any): Promise<any> {
@@ -427,17 +398,7 @@ export async function verifyGoogleUserToken(dataPayload: any): Promise<any> {
     console.warn("Failed to verify Google user token", e);
   }
 
-  return {
-    id: "usr_google_" + Math.random().toString(36).substring(2, 9),
-    email: dataPayload.email || "maman.serene.google@gmail.com",
-    user_metadata: {
-      full_name: dataPayload.name || "Sarah (Google)",
-      name: dataPayload.name || "Sarah (Google)",
-      provider: "google",
-      google_verified: true,
-      onboarding_completed: true
-    }
-  };
+  return null;
 }
 
 // ==========================================

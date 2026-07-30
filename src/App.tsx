@@ -20,7 +20,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { ThemeToggleQuick } from "@/components/ThemeToggle";
 
 function RootRoute() {
-  const { user, loading } = useAuth();
+  const { user, loading, isSupabaseConfigured } = useAuth();
 
   if (loading) {
     return (
@@ -30,9 +30,13 @@ function RootRoute() {
     );
   }
 
-  const isCompleted = localStorage.getItem("mamanzen_onboarding_completed") === "true" || Boolean(user?.user_metadata?.onboarding_completed);
+  if (isSupabaseConfigured && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
-  if (isCompleted) {
+  const isCompleted = Boolean(user?.user_metadata?.onboarding_completed || localStorage.getItem('mamanzen_onboarding_completed'));
+
+  if (user && isCompleted) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -40,7 +44,7 @@ function RootRoute() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isSupabaseConfigured } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -51,9 +55,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const isCompleted = localStorage.getItem("mamanzen_onboarding_completed") === "true" || Boolean(user?.user_metadata?.onboarding_completed);
+  if (isSupabaseConfigured && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
-  if (!isCompleted && location.pathname !== "/onboarding") {
+  const isCompleted = Boolean(user?.user_metadata?.onboarding_completed || localStorage.getItem('mamanzen_onboarding_completed'));
+
+  if (user && !isCompleted && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
 
