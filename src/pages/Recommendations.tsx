@@ -6,6 +6,7 @@ import { usePremium } from "@/lib/premium-context";
 import { getPregnancyInfo } from "@/lib/pregnancy";
 import { MedicalDisclaimerBanner } from "@/components/MedicalDisclaimer";
 import { useAuth } from "@/components/AuthProvider";
+import { fetchSymptomLogs, fetchUserProfile } from "@/lib/apiClient";
 
 interface AIResponse {
   greeting: string;
@@ -43,24 +44,28 @@ export default function Recommendations() {
         return;
       }
 
-      // Load tracker data from localStorage if available
-      const storedTrackerData = localStorage.getItem('mamanzen_tracker');
-      const storedUserData = localStorage.getItem('mamanzen_user');
-      
+      // Load tracker data from Supabase
+      const profile = await fetchUserProfile();
+      const logs = await fetchSymptomLogs();
+
       let trimester = 2;
       let userName = authName;
-      if (storedUserData) {
-        try {
-          const u = JSON.parse(storedUserData);
-          if (u.name) userName = u.name;
-          const info = getPregnancyInfo(u.dueDate, u.currentWeek);
-          trimester = info.trimester;
-        } catch (e) {}
+      if (profile) {
+        const info = getPregnancyInfo(profile.dueDate, typeof profile.currentWeek === 'number' ? profile.currentWeek : parseInt(profile.currentWeek as string) || 1);
+        trimester = info.trimester;
       }
+
+      let latestLog = logs && logs.length > 0 ? logs[0] : null;
 
       let reqBody = {
         trimester: trimester,
-        symptoms: {
+        symptoms: latestLog ? {
+          fatigue: latestLog.energy === "low" ? 4 : latestLog.energy === "medium" ? 2 : 1,
+          nausea: latestLog.symptoms.includes("Nausées") ? 3 : 1,
+          mood: latestLog.mood === "sad" ? "Mauvais" : latestLog.mood === "radiant" ? "Excellent" : "Moyen",
+          sleep: latestLog.energy === "low" ? 3 : 2,
+          notes: latestLog.note || ""
+        } : {
           fatigue: 3,
           nausea: 1,
           mood: "Moyen",
@@ -68,15 +73,6 @@ export default function Recommendations() {
           notes: ""
         }
       };
-
-      if (storedTrackerData) {
-        try {
-          reqBody = JSON.parse(storedTrackerData);
-          reqBody.trimester = trimester; // Ensure trimester is fresh
-        } catch (e) {
-          console.error("Failed to parse tracker data", e);
-        }
-      }
 
       const res = await fetch("/api/recommendations", {
         method: "POST",

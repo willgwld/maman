@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Heart, RefreshCw, MessageSquareHeart, Activity, Bot, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { fetchSymptomLogs } from "@/lib/apiClient";
 
 interface Message {
   role: "user" | "model";
@@ -80,36 +81,25 @@ export default function AIChat() {
     }
   };
 
-  // Analyze recent symptoms from localStorage
-  const analyzeRecentSymptoms = () => {
-    const stored = localStorage.getItem("mamanzen_daily_logs");
-    if (!stored) {
-      sendMessage("J'aimerais avoir tes conseils généraux pour bien prendre soin de moi aujourd'hui.");
+  // Analyze recent symptoms from Supabase
+  const analyzeRecentSymptoms = async () => {
+    const logs = await fetchSymptomLogs();
+    if (!logs || logs.length === 0) {
+      sendMessage("Je n'ai pas encore saisi de symptômes aujourd'hui. Quels conseils peux-tu me donner pour rester en pleine forme ?");
       return;
     }
 
-    try {
-      const logs = JSON.parse(stored);
-      if (!logs || logs.length === 0) {
-        sendMessage("Je n'ai pas encore saisi de symptômes aujourd'hui. Quels conseils peux-tu me donner pour rester en pleine forme ?");
-        return;
-      }
-
-      const recent = logs[0];
-      const prompt = `Voici mon dernier suivi du journal : 
+    const recent = logs[0];
+    const prompt = `Voici mon dernier suivi du journal : 
 - Date : ${recent.date}
 - Humeur : ${recent.mood}
 - Énergie : ${recent.energy}
-- Sommeil : ${recent.sleep}
 - Symptômes : ${recent.symptoms?.join(", ") || "aucun symptôme particulier"}
 - Note : ${recent.note || "aucune note"}
 
 Peux-tu analyser gentiment ces symptômes et me donner des conseils doux et rassurants adaptées ?`;
 
-      sendMessage(prompt);
-    } catch (e) {
-      sendMessage("Peux-tu me donner des conseils bienveillants pour apaiser la fatigue et le stress de la grossesse ?");
-    }
+    sendMessage(prompt);
   };
 
   return (

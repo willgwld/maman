@@ -235,7 +235,7 @@ export default function AuthPage() {
           {/* Footer Security Badge */}
           <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
             <ShieldCheck className="w-4 h-4 text-[#A3B899]" />
-            <span>Sécurité renforcée • MamanZen 2026</span>
+            <span>Sécurité renforcée • MamanZen {new Date().getFullYear()}</span>
           </div>
 
         </motion.div>
