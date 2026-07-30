@@ -219,7 +219,23 @@ CREATE POLICY "Admins can view all checklists"
     )
   );
 
--- 7. Trigger automatique pour la création du profil utilisateur
+-- 7. Table 'favorite_weeks' (Semaines favorites)
+CREATE TABLE IF NOT EXISTS public.favorite_weeks (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  week_number integer NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, week_number)
+);
+
+ALTER TABLE public.favorite_weeks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own favorite weeks" ON public.favorite_weeks;
+CREATE POLICY "Users can manage their own favorite weeks"
+  ON public.favorite_weeks FOR ALL
+  USING (auth.uid() = user_id);
+
+-- 8. Trigger automatique pour la création du profil utilisateur
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MedicalDisclaimerBanner } from "@/components/MedicalDisclaimer";
+import { fetchTodayHydration, saveHydrationCount } from "@/lib/apiClient";
 
 interface Recipe {
   id: string;
@@ -209,14 +210,13 @@ export default function Nutrition() {
   const [activeRecipe, setActiveRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("mamanzen_water");
-    if (saved) setGlasses(parseInt(saved, 10));
+    fetchTodayHydration().then(setGlasses);
   }, []);
 
-  const addGlass = () => {
+  const addGlass = async () => {
     const newAmount = Math.min(glasses + 1, 8);
     setGlasses(newAmount);
-    localStorage.setItem("mamanzen_water", newAmount.toString());
+    await saveHydrationCount(newAmount);
   };
 
   const volume = (glasses * 0.25).toFixed(1);

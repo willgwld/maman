@@ -265,6 +265,112 @@ export async function getGoogleAuthUrl(): Promise<string | null> {
   return data.url;
 }
 
+// ==========================================
+// 6. HYDRATION
+// ==========================================
+
+export async function fetchTodayHydration(): Promise<number> {
+  const uid = await getCurrentUserId();
+  if (!uid) return 0;
+
+  const todayStr = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  });
+
+  const { data, error } = await supabase
+    .from("symptom_logs")
+    .select("water_ml")
+    .eq("user_id", uid)
+    .eq("date", todayStr)
+    .maybeSingle();
+
+  if (error || !data) return 0;
+  return data.water_ml || 0;
+}
+
+export async function saveHydrationCount(glasses: number): Promise<void> {
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error("No authenticated user");
+
+  const todayStr = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  });
+
+  const { data: existing } = await supabase
+    .from("symptom_logs")
+    .select("id")
+    .eq("user_id", uid)
+    .eq("date", todayStr)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("symptom_logs")
+      .update({ water_ml: glasses })
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("symptom_logs")
+      .insert({
+        user_id: uid,
+        date: todayStr,
+        water_ml: glasses,
+        mood: "okay",
+        energy_level: 2,
+        symptoms: [],
+        notes: "",
+      });
+    if (error) throw error;
+  }
+}
+
+// ==========================================
+// 7. FAVORITE WEEKS
+// ==========================================
+
+export async function fetchFavoriteWeeks(): Promise<number[]> {
+  const uid = await getCurrentUserId();
+  if (!uid) return [];
+
+  const { data, error } = await supabase
+    .from("favorite_weeks")
+    .select("week_number")
+    .eq("user_id", uid);
+
+  if (error || !data) return [];
+  return data.map((row: any) => row.week_number);
+}
+
+export async function toggleFavoriteWeek(weekNumber: number): Promise<void> {
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error("No authenticated user");
+
+  const { data: existing } = await supabase
+    .from("favorite_weeks")
+    .select("id")
+    .eq("user_id", uid)
+    .eq("week_number", weekNumber)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("favorite_weeks")
+      .delete()
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("favorite_weeks")
+      .insert({ user_id: uid, week_number: weekNumber });
+    if (error) throw error;
+  }
+}
+
 export async function verifyGoogleUserToken(accessToken: string): Promise<any> {
   const { data, error } = await supabase.auth.getUser(accessToken);
   if (error || !data?.user) return null;

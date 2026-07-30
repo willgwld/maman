@@ -22,6 +22,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getWeeklyInfo, WEEKLY_DATA, WeeklyInfo } from "@/lib/pregnancy";
+import { fetchFavoriteWeeks, toggleFavoriteWeek } from "@/lib/apiClient";
 
 export default function Weekly() {
   // Calculated or stored user's week
@@ -52,11 +53,8 @@ export default function Weekly() {
         setCurrentWeek(calculated);
       }
 
-      // Load favorites
-      const savedFavs = localStorage.getItem("mamanzen_favorite_weeks");
-      if (savedFavs) {
-        setFavorites(JSON.parse(savedFavs));
-      }
+      // Load favorites from Supabase
+      fetchFavoriteWeeks().then(setFavorites);
 
       // Check tracker logs for personalized message
       const savedHistory = localStorage.getItem("mamanzen_tracker_history");
@@ -79,12 +77,12 @@ export default function Weekly() {
   const prevWeek = () => setCurrentWeek((w) => Math.max(1, w - 1));
   const nextWeek = () => setCurrentWeek((w) => Math.min(40, w + 1));
 
-  const toggleFavorite = (weekNum: number) => {
+  const toggleFavorite = async (weekNum: number) => {
     const updated = favorites.includes(weekNum)
       ? favorites.filter((f) => f !== weekNum)
       : [...favorites, weekNum];
     setFavorites(updated);
-    localStorage.setItem("mamanzen_favorite_weeks", JSON.stringify(updated));
+    await toggleFavoriteWeek(weekNum);
   };
 
   const isFavorite = favorites.includes(currentWeek);

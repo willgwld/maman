@@ -96,15 +96,9 @@ export default function Tracker() {
         day: "numeric",
         month: "long"
       });
-      const todayKey = new Date().toISOString().split('T')[0];
-
       const todayLog = (fetched as any[]).find((l) => l.date === todayStr);
-      const localHydration = localStorage.getItem("mamanzen_hydration_" + todayKey);
-
       if (todayLog && typeof todayLog.hydration === 'number') {
         setWaterGlasses(todayLog.hydration);
-      } else if (localHydration !== null) {
-        setWaterGlasses(parseInt(localHydration, 10) || 0);
       }
     };
     loadLogs();
@@ -113,8 +107,6 @@ export default function Tracker() {
   const updateHydration = (count: number) => {
     const clamped = Math.max(0, Math.min(count, 16));
     setWaterGlasses(clamped);
-    const todayKey = new Date().toISOString().split('T')[0];
-    localStorage.setItem("mamanzen_hydration_" + todayKey, String(clamped));
   };
 
   const toggleSymptom = (s: string) => {
