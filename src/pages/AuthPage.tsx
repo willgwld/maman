@@ -147,27 +147,6 @@ export default function AuthPage() {
                 </p>
               </div>
             </motion.div>
-          ) : isSignUp && localStorage.getItem('mamanzen_onboarding_completed') !== 'true' ? (
-            <motion.div 
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs flex flex-col gap-2 shadow-sm"
-            >
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-xs text-amber-900">Onboarding préalable obligatoire</p>
-                  <p className="text-amber-800 text-[11px] mt-0.5 leading-relaxed">
-                    Avant de pouvoir vous inscrire, vous devez remplir le questionnaire d'accueil MamanZen afin d'adapter votre espace.
-                  </p>
-                </div>
-              </div>
-              <Link to="/onboarding" className="mt-1">
-                <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl h-9">
-                  Commencer l'Onboarding
-                </Button>
-              </Link>
-            </motion.div>
           ) : null}
 
           {/* Tab Mode Switcher */}
