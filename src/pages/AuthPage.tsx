@@ -141,7 +141,7 @@ export default function AuthPage() {
         const { error: supaErr } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/dashboard`
+            redirectTo: `${window.location.origin}/auth/callback`
           }
         });
         if (supaErr) throw supaErr;

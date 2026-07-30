@@ -13,6 +13,7 @@ import AIChat from "./pages/AIChat";
 import Weekly from "./pages/Weekly";
 import SettingsPage from "./pages/Settings";
 import AuthPage from "./pages/AuthPage";
+import AuthCallback from "./pages/AuthCallback";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotificationPermissionModal from "@/components/NotificationPermissionModal";
 import { useAuth } from "@/components/AuthProvider";
@@ -240,6 +241,7 @@ export default function App() {
         <Route path="/landing" element={<Landing />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/dons" element={<AppLayout><Donations /></AppLayout>} />
         <Route path="/donations" element={<AppLayout><Donations /></AppLayout>} />
         <Route path="/legal" element={<AppLayout><LegalPages /></AppLayout>} />
