@@ -405,8 +405,6 @@ Règles strictes :
   useEffect(() => {
     loadRealUserData();
   }, [isSupabaseConfigured]);
-    loadRealUserData();
-  };
 
   // User Actions
   const handleAddUser = async () => {
