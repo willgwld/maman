@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Check, Luggage, Building, Calendar, Baby, RefreshCw, ShieldAlert, Sparkles } from "lucide-react";
+import { CheckSquare, Plus, Trash2, Check, Luggage, Building, Calendar, Baby, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   fetchChecklists, 
   toggleChecklistItem, 
   addChecklistItem, 
-  deleteChecklistItem, 
-  resetChecklistsToDefault 
+  deleteChecklistItem
 } from "@/lib/apiClient";
 
 interface ChecklistItem {
@@ -17,48 +16,6 @@ interface ChecklistItem {
   completed: boolean;
 }
 
-const DEFAULT_ITEMS: ChecklistItem[] = [
-  // Valise Maternité - Maman & Bébé
-  { id: "v1", text: "Pyjamas doux boutonnés devant (pratiques pour l'allaitement)", category: "valise", completed: false },
-  { id: "v2", text: "5-6 bodies en coton bio et pyjamas (taille naissance & 1 mois)", category: "valise", completed: false },
-  { id: "v3", text: "Bonnet en coton/laine, petites chaussettes et brassières", category: "valise", completed: false },
-  { id: "v4", text: "Coussin d'allaitement & brassières de maintien confortables", category: "valise", completed: false },
-  { id: "v5", text: "Serviettes hygiéniques maternité ultra-absorbantes", category: "valise", completed: false },
-  { id: "v6", text: "Trousse de toilette maman (brumisateur, baume à lèvres, crème)", category: "valise", completed: false },
-  { id: "v7", text: "Veilleuse douce pour les tétées/bibis nocturnes à la maternité", category: "valise", completed: false },
-  { id: "v8", text: "Chargeur de téléphone avec rallonge ou batterie externe", category: "valise", completed: false },
-  { id: "v9", text: "Siège-auto / Cosi homologué déjà installé dans la voiture", category: "valise", completed: false },
-
-  // Démarches & Administrations
-  { id: "d1", text: "Déclaration de grossesse (CAF & Sécurité Sociale) avant 14 SA", category: "demarches", completed: false },
-  { id: "d2", text: "Inscription à la maternité choisie", category: "demarches", completed: false },
-  { id: "d3", text: "Inscription en crèche ou recherche assistante maternelle", category: "demarches", completed: false },
-  { id: "d4", text: "Reconnaissance anticipée en mairie (si parents non mariés)", category: "demarches", completed: false },
-  { id: "d5", text: "Information de l'employeur & demande de congé maternité/paternité", category: "demarches", completed: false },
-  { id: "d6", text: "Mise à jour de la carte Vitale au 6ème mois de grossesse", category: "demarches", completed: false },
-
-  // RDV Médicaux & Préparation
-  { id: "r1", text: "Échographie T1 (11-13 SA) & Bilan sanguin initial", category: "rdv", completed: false },
-  { id: "r2", text: "Consultation du 4ème mois & Bilan bucco-dentaire gratuit", category: "rdv", completed: false },
-  { id: "r3", text: "Échographie T2 Morphologique (22-24 SA)", category: "rdv", completed: false },
-  { id: "r4", text: "Séances de préparation à la naissance & à la parentalité (8 séances)", category: "rdv", completed: false },
-  { id: "r5", text: "Échographie T3 (32-34 SA) & RDV Anesthésiste obligatoire", category: "rdv", completed: false },
-  { id: "r6", text: "Consultation du 9ème mois & projet de naissance formalisé", category: "rdv", completed: false },
-
-  // Trousseau & Équipement Bébé
-  { id: "t1", text: "Lit bébé / Berceau cododo avec matelas ferme neuf", category: "trousseau", completed: false },
-  { id: "t2", text: "Gigoteuses / Turbulettes 0-6 mois (TOG adapté à la saison)", category: "trousseau", completed: false },
-  { id: "t3", text: "Table à langer, liniment bio et carrés de coton lavables", category: "trousseau", completed: false },
-  { id: "t4", text: "Thermomètre de bain, thermomètre médical & mouche-bébé", category: "trousseau", completed: false },
-  { id: "t5", text: "Poussette combinée ou écharpe de portage physiologique", category: "trousseau", completed: false },
-
-  // Soins Post-Partum & Retour à la maison
-  { id: "p1", text: "Repas congelés faits à l'avance pour la première semaine", category: "postpartum", completed: false },
-  { id: "p2", text: "Coordonnées de la sage-femme libérale pour le suivi à domicile", category: "postpartum", completed: false },
-  { id: "p3", text: "Poche de froid / compresses d'hamamélis pour le périnée", category: "postpartum", completed: false },
-  { id: "p4", text: "RDV pédiatre fixé pour les 8 jours de bébé", category: "postpartum", completed: false }
-];
-
 export default function Checklists() {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<"all" | "valise" | "demarches" | "rdv" | "trousseau" | "postpartum">("all");
@@ -67,10 +24,8 @@ export default function Checklists() {
   useEffect(() => {
     const loadChecklists = async () => {
       const fetched = await fetchChecklists();
-      if (fetched && fetched.length > 0) {
+      if (fetched) {
         setItems(fetched as any);
-      } else {
-        setItems(DEFAULT_ITEMS);
       }
     };
     loadChecklists();
@@ -106,13 +61,6 @@ export default function Checklists() {
     
     const updated = await deleteChecklistItem(id);
     if (updated) setItems(updated as any);
-  };
-
-  const resetToDefault = async () => {
-    if (window.confirm("Voulez-vous réinitialiser toutes les checklists préremplies ?")) {
-      const updated = await resetChecklistsToDefault();
-      if (updated) setItems(updated as any);
-    }
   };
 
   const filteredItems = items.filter((i) => {
@@ -293,16 +241,6 @@ export default function Checklists() {
             </div>
           ))
         )}
-      </div>
-
-      <div className="pt-2 text-center">
-        <button
-          onClick={resetToDefault}
-          className="text-xs text-muted-foreground hover:text-[#A3B899] underline flex items-center gap-1.5 mx-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Réinitialiser avec les checklists recommandées par les sages-femmes</span>
-        </button>
       </div>
 
     </div>

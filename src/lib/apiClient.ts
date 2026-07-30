@@ -311,30 +311,6 @@ export async function deleteChecklistItem(itemId: string, userId?: string): Prom
   return updated;
 }
 
-export async function resetChecklistsToDefault(userId?: string): Promise<ChecklistItemData[]> {
-  const targetUserId = userId || getUserId();
-
-  try {
-    const res = await fetch("/api/checklists/reset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: targetUserId })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        localStorage.setItem("mamanzen_checklists_v2", JSON.stringify(data.items));
-        return data.items;
-      }
-    }
-  } catch (err) {
-    console.warn("[MamanZen API] Offline mode for checklist reset", err);
-  }
-
-  localStorage.removeItem("mamanzen_checklists_v2");
-  return fetchChecklists(targetUserId);
-}
-
 // ==========================================
 // 4. GOOGLE AUTHENTICATION HELPERS
 // ==========================================
