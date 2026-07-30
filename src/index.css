@@ -172,7 +172,7 @@
 
   /* Border color overrides */
   .border-\[\#EAE5DF\],
-  .border-[#E5E0DA],
+  .border-\[\#E5E0DA\],
   .border-gray-100,
   .border-gray-200,
   .border-slate-100,
@@ -196,18 +196,18 @@
   /* Soft Rose / Pink boxes in dark mode */
   .bg-rose-50,
   .bg-pink-50,
-  .bg-[#E9B6B6]\/10,
-  .bg-[#E9B6B6]\/15,
-  .bg-[#E9B6B6]\/20 {
+  .bg-\[\#E9B6B6\]\/10,
+  .bg-\[\#E9B6B6\]\/15,
+  .bg-\[\#E9B6B6\]\/20 {
     background-color: rgba(233, 182, 182, 0.18) !important;
   }
 
   /* Soft Green / Sage boxes in dark mode */
   .bg-emerald-50,
   .bg-green-50,
-  .bg-[#A3B899]\/10,
-  .bg-[#A3B899]\/15,
-  .bg-[#A3B899]\/20 {
+  .bg-\[\#A3B899\]\/10,
+  .bg-\[\#A3B899\]\/15,
+  .bg-\[\#A3B899\]\/20 {
     background-color: rgba(163, 184, 153, 0.2) !important;
   }
 
@@ -242,14 +242,14 @@
 
   /* Hover state overrides */
   .hover\:bg-gray-50:hover,
-  .hover\:bg-[#FAFAF9]:hover,
+  .hover\:bg-\[\#FAFAF9\]:hover,
   .hover\:bg-gray-100:hover {
     background-color: #2D2926 !important;
   }
 
   /* Gradient stop overrides for dynamic widgets */
   .from-\[\#FAF8F5\],
-  .from-[#FAF8F5],
+  .from-\[\#FAF8F5\],
   .from-white {
     --tw-gradient-from: #221F1D !important;
   }
