@@ -243,127 +243,14 @@ export default function AdminDashboard() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // --- DEFAULT DATA SEEDS ---
-  const initialUsers: UserProfile[] = [
-    {
-      id: "usr_101",
-      name: "Sophie Martin",
-      email: "sophie.m@gmail.com",
-      stage: "enceinte",
-      current_week: 24,
-      due_date: "2026-11-15",
-      maternity_hospital: "CHRU Lille",
-      role: "user",
-      status: "active",
-      created_at: "2026-07-28",
-      last_active: "Aujourd'hui à 10h14",
-      daily_logs_count: 28,
-      ai_chats_count: 12,
-      checklists_completed: 2,
-      notifications_enabled: true,
-      donations_total: 15
-    },
-    {
-      id: "usr_102",
-      name: "Camille Dubois",
-      email: "c.dubois@hotmail.fr",
-      stage: "enceinte",
-      current_week: 12,
-      due_date: "2027-02-01",
-      maternity_hospital: "Port-Royal Paris",
-      role: "user",
-      status: "active",
-      created_at: "2026-07-25",
-      last_active: "Hier à 21h30",
-      daily_logs_count: 14,
-      ai_chats_count: 5,
-      checklists_completed: 1,
-      notifications_enabled: true,
-      donations_total: 0
-    },
-    {
-      id: "usr_103",
-      name: "Léa Bernard",
-      email: "lea.postpartum@gmail.com",
-      stage: "postpartum",
-      current_week: 3,
-      due_date: "2026-06-20",
-      maternity_hospital: "Hôpital Croix-Rousse Lyon",
-      role: "user",
-      status: "active",
-      created_at: "2026-07-10",
-      last_active: "Il y a 2h",
-      daily_logs_count: 42,
-      ai_chats_count: 19,
-      checklists_completed: 4,
-      notifications_enabled: false,
-      donations_total: 30
-    },
-    {
-      id: "usr_104",
-      name: "Élodie Bernard (Admin)",
-      email: "admin.elodie@mamanzen.fr",
-      stage: "enceinte",
-      current_week: 32,
-      due_date: "2026-09-20",
-      maternity_hospital: "Maternité Jeanne de Flandre",
-      role: "super-admin",
-      status: "active",
-      created_at: "2026-01-01",
-      last_active: "En ligne",
-      daily_logs_count: 90,
-      ai_chats_count: 45,
-      checklists_completed: 5,
-      notifications_enabled: true,
-      donations_total: 50
-    },
-    {
-      id: "usr_105",
-      name: "Amélie Fournier",
-      email: "amelie.f@orange.fr",
-      stage: "enceinte",
-      current_week: 18,
-      due_date: "2026-12-10",
-      maternity_hospital: "Clinique Mathilde Rouen",
-      role: "user",
-      status: "active",
-      created_at: "2026-07-29",
-      last_active: "Aujourd'hui à 08h45",
-      daily_logs_count: 5,
-      ai_chats_count: 2,
-      checklists_completed: 0,
-      notifications_enabled: true,
-      donations_total: 0
-    }
-  ];
+  // --- DEFAULT DATA SEEDS (empty - no demo data) ---
+  const initialUsers: UserProfile[] = [];
+  const initialDonations: DonationRecord[] = [];
+  const initialTickets: SupportTicket[] = [];
+  const initialMeditations: MeditationItem[] = [];
+  const initialQuotes: DailyQuote[] = [];
 
-  const initialDonations: DonationRecord[] = [
-    { id: "don_1", date: "2026-07-28", donorName: "Sophie Martin", donorEmail: "sophie.m@gmail.com", amount: 15, frequency: "Unique", message: "Merci pour cette superbe application !" },
-    { id: "don_2", date: "2026-07-26", donorName: "Anonyme", donorEmail: "maman.anon@gmail.com", amount: 25, frequency: "Mensuel", message: "Soutien pour le serveur et l'IA Sage-Femme." },
-    { id: "don_3", date: "2026-07-20", donorName: "Léa Bernard", donorEmail: "lea.postpartum@gmail.com", amount: 30, frequency: "Unique" },
-    { id: "don_4", date: "2026-07-15", donorName: "Claire Morel", donorEmail: "claire.m@yahoo.fr", amount: 10, frequency: "Mensuel" }
-  ];
-
-  const initialTickets: SupportTicket[] = [
-    { id: "tck_1", date: "2026-07-28", senderName: "Marion V.", senderEmail: "marion.v@gmail.com", subject: "Question sur les notifications", message: "Bonjour, je ne reçois plus le rappel de méditation du soir vers 21h30.", status: "Nouveau" },
-    { id: "tck_2", date: "2026-07-25", senderName: "Julie K.", senderEmail: "julie.k@hotmail.com", subject: "Suggestion valise maternité", message: "Auriez-vous la possibilité de rajouter une catégorie pour les pères ?", status: "Traité" }
-  ];
-
-  const initialMeditations: MeditationItem[] = [
-    { id: "med_1", title: "Respiration abdominale apaisante", duration: "5 min", category: "Respiration", audioUrl: "/audio/respiration.mp3", status: "Published", listens: 1420 },
-    { id: "med_2", title: "Ancrage et lâcher-prise du soir", duration: "10 min", category: "Sommeil", audioUrl: "/audio/sommeil.mp3", status: "Published", listens: 2890 },
-    { id: "med_3", title: "Visualisation douce de la rencontre avec bébé", duration: "12 min", category: "Visualisation", audioUrl: "/audio/rencontre.mp3", status: "Draft", listens: 0 }
-  ];
-
-  const initialQuotes: DailyQuote[] = [
-    { id: "q_1", quote: "Ton corps orchestre un vrai chef-d'œuvre. Fais-lui confiance.", author: "Sage-Femme MamanZen", activeDate: "Aujourd'hui" },
-    { id: "q_2", quote: "Prendre du temps pour soi n'est pas de l'égoïsme, c'est le premier acte d'amour.", author: "Pensée Douce", activeDate: "Demain" }
-  ];
-
-  const initialPosts: CommunityPost[] = [
-    { id: "post_1", author: "Sophie M.", category: "1er Trimestre", content: "Quels sont vos meilleurs conseils naturels contre les nausées du matin ?", date: "Hier à 14h20", status: "Approved", likes: 18, replies: 9 },
-    { id: "post_2", author: "User_Spam", category: "Petites Annonces", content: "Offre réduction sur compléments alimentaires douteux via lien...", date: "Aujourd'hui à 09h10", status: "Flagged", likes: 0, replies: 1 }
-  ];
+  const initialPosts: CommunityPost[] = [];
 
   const initialFAQs: FAQItem[] = [
     { id: "faq_1", question: "Est-ce que MamanZen est 100% gratuite ?", answer: "Oui, MamanZen est entièrement gratuite et financée grâce aux dons bienveillants de la communauté.", category: "Général" },

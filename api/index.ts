@@ -827,26 +827,8 @@ app.post("/api/auth/google/verify", (req, res) => {
 // 5. ADMIN BACK-OFFICE REAL DATA ENDPOINTS
 // ==========================================
 
-// Seed default users into profilesStore if not present
-const seedAdminProfiles = () => {
-  const seedUsers = [
-    { userId: "usr_101", name: "Sophie Martin", email: "sophie.m@gmail.com", stageMode: "pregnancy" as const, currentWeek: 24, dueDate: "2026-11-15", medicalConditions: "Légère anémie", hideTracking: false, updatedAt: new Date(Date.now() - 3600000).toISOString() },
-    { userId: "usr_102", name: "Camille Dubois", email: "c.dubois@hotmail.fr", stageMode: "pregnancy" as const, currentWeek: 12, dueDate: "2027-02-01", medicalConditions: "", hideTracking: false, updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { userId: "usr_103", name: "Léa Bernard", email: "lea.postpartum@gmail.com", stageMode: "postpartum" as const, currentWeek: 3, dueDate: "2026-06-20", medicalConditions: "Césarienne", hideTracking: false, updatedAt: new Date(Date.now() - 7200000).toISOString() },
-    { userId: "usr_104", name: "Élodie Bernard", email: "admin.elodie@mamanzen.fr", stageMode: "pregnancy" as const, currentWeek: 32, dueDate: "2026-09-20", medicalConditions: "", hideTracking: false, updatedAt: new Date().toISOString() }
-  ];
-
-  seedUsers.forEach((u) => {
-    if (!profilesStore.has(u.userId)) {
-      profilesStore.set(u.userId, u);
-    }
-  });
-};
-
 // GET /api/admin/users - Get real user profiles with calculated stats
 app.get("/api/admin/users", (req, res) => {
-  seedAdminProfiles();
-
   const userList = Array.from(profilesStore.values()).map((p) => {
     const logs = symptomLogsStore.get(p.userId) || [];
     const checklists = checklistsStore.get(p.userId) || [];
@@ -854,21 +836,21 @@ app.get("/api/admin/users", (req, res) => {
 
     return {
       id: p.userId,
-      name: p.name || "MamanZen Utilisatrice",
-      email: (p as any).email || `${p.name.toLowerCase().replace(/\s+/g, ".")}@mamanzen.fr`,
+      name: p.name,
+      email: (p as any).email || "",
       stage: p.stageMode === "postpartum" ? "postpartum" : "enceinte",
-      current_week: p.currentWeek || 20,
-      due_date: p.dueDate || "2026-12-31",
-      maternity_hospital: p.medicalConditions || "CHRU / Maternité",
-      role: p.userId === "usr_104" ? "super-admin" : "user",
+      current_week: p.currentWeek || null,
+      due_date: p.dueDate || null,
+      maternity_hospital: p.medicalConditions || "",
+      role: (p as any).role || "user",
       status: (p as any).status || "active",
       created_at: p.updatedAt ? new Date(p.updatedAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-      last_active: p.updatedAt ? new Date(p.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "Aujourd'hui",
-      daily_logs_count: logs.length || Math.floor(Math.random() * 15) + 5,
-      ai_chats_count: Math.floor(logs.length * 0.6) + 2,
+      last_active: p.updatedAt ? new Date(p.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "",
+      daily_logs_count: logs.length,
+      ai_chats_count: Math.floor((logs.length || 0) * 0.6),
       checklists_completed: completedChecklists,
       notifications_enabled: !p.hideTracking,
-      donations_total: p.userId === "usr_101" ? 15 : p.userId === "usr_103" ? 30 : 0
+      donations_total: 0
     };
   });
 
@@ -881,8 +863,6 @@ app.get("/api/admin/users", (req, res) => {
 
 // GET /api/admin/stats - Live overall metrics
 app.get("/api/admin/stats", (req, res) => {
-  seedAdminProfiles();
-
   const allProfiles = Array.from(profilesStore.values());
   let totalLogsCount = 0;
   let totalChecklistsCount = 0;
