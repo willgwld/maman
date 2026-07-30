@@ -406,14 +406,7 @@ app.get(["/api/profile", "/api/profile/:userId"], (req, res) => {
   if (!profile) {
     return res.json({
       success: true,
-      profile: {
-        userId,
-        name: "Maman",
-        dueDate: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
-        currentWeek: 14,
-        stageMode: "pregnancy",
-        updatedAt: new Date().toISOString()
-      }
+      profile: null
     });
   }
 
@@ -426,7 +419,7 @@ app.post("/api/profile", (req, res) => {
 
   const existing: UserProfile = profilesStore.get(userId) || { 
     userId, 
-    name: name || "Maman", 
+    name: name || "", 
     dueDate: dueDate || new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0], 
     currentWeek: currentWeek || 14, 
     stageMode: stageMode || "pregnancy", 

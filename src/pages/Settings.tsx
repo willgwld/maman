@@ -48,7 +48,8 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth();
 
   // User Profile State
-  const [userName, setUserName] = useState("Sarah");
+  const initialName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Maman";
+  const [userName, setUserName] = useState(initialName);
   const [stageMode, setStageMode] = useState<"pregnancy" | "postpartum">("pregnancy");
   const [currentWeek, setCurrentWeek] = useState(24);
   const [postpartumWeeks, setPostpartumWeeks] = useState(6);
@@ -232,6 +233,7 @@ export default function SettingsPage() {
 
               <div>
                 <h2 className="text-base sm:text-xl font-bold text-[#4A4A4A]">{userName}</h2>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{user?.email}</p>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-[#FAFAF9] border border-gray-100 text-[11px] sm:text-xs font-semibold text-[#666] mt-1">
                   <Baby className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#A3B899]" />
                   <span>

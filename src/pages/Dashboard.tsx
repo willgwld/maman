@@ -17,17 +17,20 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getWeeklyInfo, getGreeting, QUOTES } from "@/lib/pregnancy";
+import { useAuth } from "@/components/AuthProvider";
 import { fetchUserProfile } from "@/lib/apiClient";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || "Maman";
   const [user, setUser] = useState<{
     name: string;
     mode: "pregnancy" | "postpartum";
     dueDate: string;
     currentWeek: number;
   }>({
-    name: "Maman",
+    name: displayName,
     mode: "pregnancy",
     dueDate: "2026-10-15",
     currentWeek: 20
@@ -44,7 +47,7 @@ export default function Dashboard() {
       const p = await fetchUserProfile();
       if (p) {
         setUser({
-          name: p.name || "Maman",
+          name: p.name || displayName,
           mode: p.stageMode || "pregnancy",
           dueDate: p.dueDate || "2026-10-15",
           currentWeek: typeof p.currentWeek === 'number' ? p.currentWeek : parseInt(p.currentWeek as string) || 20
@@ -54,7 +57,7 @@ export default function Dashboard() {
     loadProfile();
   }, []);
 
-  const greeting = getGreeting(user.name);
+  const greeting = getGreeting(user.name || displayName);
   const weekly = getWeeklyInfo(user.currentWeek);
 
   return (
