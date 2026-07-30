@@ -39,6 +39,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can delete their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 
 -- Politiques RLS 'profiles'

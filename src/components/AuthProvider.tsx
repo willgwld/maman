@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           const role = await fetchProfileRole(supaUser.id);
           if (!mounted) return;
-          supaUser.user_metadata.role = role;
+          (supaUser.user_metadata as any).role = role;
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
         }
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           };
           const role = await fetchProfileRole(supaUser.id);
-          supaUser.user_metadata.role = role;
+          (supaUser.user_metadata as any).role = role;
           setUser(supaUser);
           localStorage.setItem("mamanzen_user", JSON.stringify(supaUser.user_metadata));
         } else {
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         isSupabaseConfigured,
-        userRole: user?.user_metadata?.role || "user",
+        userRole: (user?.user_metadata as any)?.role || "user",
         setLocalUser,
         signOut,
       }}

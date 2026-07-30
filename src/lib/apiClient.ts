@@ -18,7 +18,6 @@ export interface SymptomLogEntry {
   date: string;
   mood: "sad" | "okay" | "peaceful" | "happy" | "radiant";
   energy: "low" | "medium" | "high";
-  sleep: "poor" | "fair" | "good" | "excellent";
   symptoms: string[];
   hydration?: number;
   note: string;
