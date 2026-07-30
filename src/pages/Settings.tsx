@@ -188,7 +188,7 @@ export default function SettingsPage() {
       }
     }
     signOut();
-    navigate('/', { replace: true });
+    navigate('/auth', { replace: true });
   };
 
   return (
