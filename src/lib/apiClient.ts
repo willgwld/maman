@@ -203,6 +203,9 @@ export async function fetchAdminUsers(): Promise<any[]> {
 export async function fetchAdminStats(): Promise<any> {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
   const { count: totalLogs } = await supabase.from("symptom_logs").select("*", { count: "exact", head: true });
@@ -212,14 +215,25 @@ export async function fetchAdminStats(): Promise<any> {
     .select("*", { count: "exact", head: true })
     .gte("created_at", startOfMonth);
 
+  // DAU / WAU / MAU from symptom_logs
+  const [dauRaw, wauRaw, mauRaw] = await Promise.all([
+    supabase.from("symptom_logs").select("user_id").gte("created_at", dayAgo),
+    supabase.from("symptom_logs").select("user_id").gte("created_at", weekAgo),
+    supabase.from("symptom_logs").select("user_id").gte("created_at", monthAgo),
+  ]);
+
+  const dau = new Set(dauRaw.data?.map((r: any) => r.user_id) || []).size;
+  const wau = new Set(wauRaw.data?.map((r: any) => r.user_id) || []).size;
+  const mau = new Set(mauRaw.data?.map((r: any) => r.user_id) || []).size;
+
   return {
     totalUsers: totalUsers || 0,
     totalLogs: totalLogs || 0,
     totalPosts: totalPosts || 0,
     newUsersThisMonth: newUsersThisMonth || 0,
-    dau: 0,
-    wau: 0,
-    mau: 0,
+    dau,
+    wau,
+    mau,
   };
 }
 

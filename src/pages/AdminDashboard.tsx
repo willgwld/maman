@@ -57,7 +57,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/AuthProvider";
-import { addAdminUser, toggleAdminUserStatus, deleteAdminUser } from "@/lib/apiClient";
+import { addAdminUser, toggleAdminUserStatus, deleteAdminUser, fetchAdminStats } from "@/lib/apiClient";
 
 // --- INTERFACES ---
 interface UserProfile {
@@ -304,6 +304,9 @@ Règles strictes :
     inactivityReminder: true
   });
 
+  // Admin Stats from Supabase
+  const [adminStats, setAdminStats] = useState<any>({ dau: 0, wau: 0, mau: 0, totalUsers: 0 });
+
   // Filters & Search
   const [userSearch, setUserSearch] = useState("");
   const [userStageFilter, setUserStageFilter] = useState<"all" | "enceinte" | "postpartum">("all");
@@ -366,15 +369,9 @@ Règles strictes :
         setUsers(mapped);
       }
 
-      // 2. Fetch real symptom logs count from Supabase
-      const { count: logsCount } = await supabase
-        .from("symptom_logs")
-        .select("*", { count: "exact", head: true });
-
-      // 3. Fetch real community posts count from Supabase
-      const { count: postsCount } = await supabase
-        .from("community_posts")
-        .select("*", { count: "exact", head: true });
+      // 2. Fetch admin stats (DAU/WAU/MAU, counts)
+      const stats = await fetchAdminStats();
+      setAdminStats(stats);
 
       showToast("Données synchronisées depuis Supabase !");
     } catch (err) {
@@ -725,9 +722,12 @@ Règles strictes :
                   <div className="p-2 bg-sky-100 text-sky-700 rounded-2xl"><Activity className="w-4 h-4" /></div>
                 </div>
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-black text-[#4A4A4A]">84% <span className="text-xs font-bold text-sky-700">MAU</span></h3>
+                  <h3 className="text-2xl md:text-3xl font-black text-[#4A4A4A]">
+                    {adminStats.totalUsers > 0 ? Math.round((adminStats.mau / adminStats.totalUsers) * 100) : 0}%{' '}
+                    <span className="text-xs font-bold text-sky-700">MAU</span>
+                  </h3>
                   <p className="text-[11px] text-muted-foreground font-medium mt-1">
-                    DAU: <strong className="text-[#4A4A4A]">38</strong> | WAU: <strong className="text-[#4A4A4A]">120</strong>
+                    DAU: <strong className="text-[#4A4A4A]">{adminStats.dau}</strong> | WAU: <strong className="text-[#4A4A4A]">{adminStats.wau}</strong>
                   </p>
                 </div>
               </Card>
