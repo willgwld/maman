@@ -370,20 +370,20 @@ Règles strictes :
         if (data && data.length > 0 && !error) {
           const mapped: UserProfile[] = data.map((p) => ({
             id: p.id,
-            name: p.name || "MamanZen Utilisatrice",
-            email: p.email || "Non renseigné",
+            name: p.name || "",
+            email: p.email || "",
             stage: p.current_week > 40 ? "postpartum" : "enceinte",
-            current_week: p.current_week || 12,
-            due_date: p.due_date || "2026-12-31",
+            current_week: p.current_week || null,
+            due_date: p.due_date || null,
             maternity_hospital: p.maternity_hospital || "",
             role: "user",
             status: "active",
-            created_at: p.updated_at ? new Date(p.updated_at).toLocaleDateString("fr-FR") : "Récemment",
-            last_active: "Aujourd'hui",
-            daily_logs_count: 10,
-            ai_chats_count: 4,
-            checklists_completed: 1,
-            notifications_enabled: Boolean(p.notifications_enabled),
+            created_at: p.updated_at ? new Date(p.updated_at).toLocaleDateString("fr-FR") : "",
+            last_active: p.updated_at ? new Date(p.updated_at).toLocaleString("fr-FR") : "",
+            daily_logs_count: 0,
+            ai_chats_count: 0,
+            checklists_completed: 0,
+            notifications_enabled: true,
             donations_total: 0
           }));
 
@@ -432,8 +432,8 @@ Règles strictes :
       email: newUser.email,
       stage: newUser.stage,
       current_week: newUser.current_week,
-      due_date: "2026-12-15",
-      maternity_hospital: newUser.maternity_hospital || "Non spécifié",
+      due_date: null,
+      maternity_hospital: newUser.maternity_hospital || "",
       role: "user",
       status: "active",
       created_at: new Date().toISOString().split("T")[0],
@@ -496,7 +496,8 @@ Règles strictes :
 
   // Calculate Metrics
   const totalUsersCount = users.length;
-  const newUsersToday = users.filter((u) => u.created_at === "2026-07-29" || u.last_active.includes("À l'instant") || u.last_active.includes("Aujourd'hui")).length;
+  const today = new Date().toLocaleDateString("fr-FR");
+  const newUsersToday = users.filter((u) => u.created_at === today).length;
   const newUsers7d = users.filter((u) => u.created_at.startsWith("2026-07")).length;
   const pregnantUsersCount = users.filter((u) => u.stage === "enceinte").length;
   const postpartumUsersCount = users.filter((u) => u.stage === "postpartum").length;
