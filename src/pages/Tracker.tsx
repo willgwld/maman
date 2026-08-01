@@ -91,12 +91,11 @@ export default function Tracker() {
       const fetched = await fetchSymptomLogs();
       setLogs(fetched as any);
 
-      const todayStr = new Date().toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long"
+      const todayISO = new Date().toISOString().split('T')[0];
+      const todayLog = (fetched as any[]).find((l) => {
+        const logISO = String(l.date).slice(0, 10);
+        return logISO === todayISO;
       });
-      const todayLog = (fetched as any[]).find((l) => l.date === todayStr);
       if (todayLog && typeof todayLog.hydration === 'number') {
         setWaterGlasses(todayLog.hydration);
       }
@@ -125,7 +124,7 @@ export default function Tracker() {
     });
 
     const newEntryData = {
-      date: todayStr,
+      date: new Date().toISOString().split('T')[0],
       timestamp: Date.now(),
       mood,
       energy,
@@ -135,11 +134,16 @@ export default function Tracker() {
       note: note.trim(),
     };
 
-    const updatedLogs = await saveSymptomLog(newEntryData);
-    setLogs(updatedLogs as any);
-
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    try {
+      await saveSymptomLog(newEntryData);
+      const refreshed = await fetchSymptomLogs();
+      setLogs(refreshed as any);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err: any) {
+      console.error("Erreur enregistrement", err);
+      alert("Impossible d'enregistrer pour le moment. Vérifie ta connexion.");
+    }
   };
 
   const deleteLog = async (id: string) => {

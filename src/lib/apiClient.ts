@@ -36,6 +36,15 @@ async function getCurrentUserId(): Promise<string | null> {
   return data?.user?.id || null;
 }
 
+// Normalise any date string (ex: "samedi 1 août 2026") to ISO YYYY-MM-DD for the DB
+function toISODate(value: string): string {
+  const parsed = new Date(value);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split("T")[0];
+  }
+  return value;
+}
+
 // ==========================================
 // 1. PROFIL UTILISATEUR
 // ==========================================
@@ -122,7 +131,7 @@ export async function saveSymptomLog(entry: SymptomLogEntry): Promise<SymptomLog
 
   const { error } = await supabase.from("symptom_logs").insert({
     user_id: uid,
-    date: entry.date,
+    date: toISODate(entry.date),
     mood: entry.mood,
     energy_level: energyLevel,
     symptoms: entry.symptoms,
@@ -287,17 +296,13 @@ export async function fetchTodayHydration(): Promise<number> {
   const uid = await getCurrentUserId();
   if (!uid) return 0;
 
-  const todayStr = new Date().toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long"
-  });
+  const todayISO = new Date().toISOString().split("T")[0];
 
   const { data, error } = await supabase
     .from("symptom_logs")
     .select("water_ml")
     .eq("user_id", uid)
-    .eq("date", todayStr)
+    .eq("date", todayISO)
     .maybeSingle();
 
   if (error || !data) return 0;
@@ -308,17 +313,13 @@ export async function saveHydrationCount(glasses: number): Promise<void> {
   const uid = await getCurrentUserId();
   if (!uid) throw new Error("No authenticated user");
 
-  const todayStr = new Date().toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long"
-  });
+  const todayISO = new Date().toISOString().split("T")[0];
 
   const { data: existing } = await supabase
     .from("symptom_logs")
     .select("id")
     .eq("user_id", uid)
-    .eq("date", todayStr)
+    .eq("date", todayISO)
     .maybeSingle();
 
   if (existing) {
@@ -332,7 +333,7 @@ export async function saveHydrationCount(glasses: number): Promise<void> {
       .from("symptom_logs")
       .insert({
         user_id: uid,
-        date: todayStr,
+        date: todayISO,
         water_ml: glasses,
         mood: "okay",
         energy_level: 2,
