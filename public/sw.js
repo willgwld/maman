@@ -1,17 +1,9 @@
-const CACHE_NAME = 'mamanzen-pwa-cache-v2';
+const CACHE_NAME = 'mamanzen-pwa-cache-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon.svg',
-  '/dashboard',
-  '/tracker',
-  '/symptomes',
-  '/auth',
-  '/onboarding',
-  '/recommendations',
-  '/communaute',
-  '/maternite/exercices'
+  '/icon.svg'
 ];
 
 // Install Event - Pre-cache Critical App Shell Assets
@@ -40,7 +32,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Stale-While-Revalidate with Navigation Offline Fallback
+// Fetch Event - Network-First for navigations, Cache-First for hashed assets
 self.addEventListener('fetch', (event) => {
   // Only handle GET requests and skip API / WebSocket / extension calls
   if (event.request.method !== 'GET') return;
@@ -55,24 +47,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Navigations: always try network first so new deploys appear immediately.
+  // Fall back to cached app shell only when offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html') || caches.match('/'))
+    );
+    return;
+  }
+
+  // Hashed assets (JS/CSS/fonts/images): stale-while-revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // Cache successful responses for JS/CSS/Image assets
         if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
-      }).catch((error) => {
-        console.log('[ServiceWorker] Fetch failed, serving cached asset or offline fallback:', url.pathname);
-        // If navigation request fails due to no internet, fallback to app shell /index.html
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html') || caches.match('/');
-        }
-      });
+      }).catch(() => cachedResponse);
 
       return cachedResponse || fetchPromise;
     })

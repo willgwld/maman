@@ -31,7 +31,7 @@ export default function NotificationPermissionModal({
     const prompted = localStorage.getItem("mamanzen_notif_prompted");
     const onboardingJustFinished = localStorage.getItem("mamanzen_onboarding_just_completed");
 
-    if (!prompted && (onboardingJustFinished === "true" || true)) {
+    if (!prompted && onboardingJustFinished === "true") {
       // Short delay for gentle UX
       const timer = setTimeout(() => {
         setInternalIsOpen(true);
